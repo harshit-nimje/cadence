@@ -1,0 +1,99 @@
+name: Build Android (TWA)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cadence-android-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Validate and package Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Validate repository files
+        run: |
+          set -euo pipefail
+          test -s index.html
+          test -s manifest.webmanifest
+          test -s sw.js
+          test -s twa-manifest.json
+          test -s icons/icon.svg
+          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); JSON.parse(require('fs').readFileSync('twa-manifest.json','utf8')); JSON.parse(require('fs').readFileSync('.well-known/assetlinks.json','utf8'));"
+
+      - name: Configure Bubblewrap
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > "$HOME/.bubblewrap/config.json"
+          npx --yes @bubblewrap/cli@1.27.0 updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+
+      - name: Verify deployed website
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --retry-delay 2 https://cadence.edgeone.dev/ -o /tmp/cadence-index.html
+          curl --fail --silent --show-error --location https://cadence.edgeone.dev/manifest.webmanifest -o /tmp/cadence-manifest.json
+          curl --fail --silent --show-error --location https://cadence.edgeone.dev/icons/icon.svg -o /tmp/cadence-icon.svg
+          node -e "const m=JSON.parse(require('fs').readFileSync('/tmp/cadence-manifest.json','utf8')); if(!m.start_url || !Array.isArray(m.icons) || !m.icons.length) process.exit(1);"
+
+      - name: Install Bubblewrap CLI
+        run: npm install --global @bubblewrap/cli@1.27.0
+
+      - name: Restore release signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_B64" || { echo "::error::Add ANDROID_KEYSTORE_BASE64 to repository Actions secrets."; exit 1; }
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android.keystore
+          chmod 600 android.keystore
+          test -s android.keystore
+
+      - name: Generate Android project from TWA manifest
+        run: bubblewrap update --skipVersionUpgrade --manifest=./twa-manifest.json
+
+      - name: Build signed APK and Play Store AAB
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$BUBBLEWRAP_KEYSTORE_PASSWORD" || { echo "::error::Add KEYSTORE_PASSWORD to repository Actions secrets."; exit 1; }
+          test -n "$BUBBLEWRAP_KEY_PASSWORD" || { echo "::error::Add KEY_PASSWORD to repository Actions secrets."; exit 1; }
+          bubblewrap build --manifest=./twa-manifest.json --signingKeyPath=./android.keystore --signingKeyAlias=android
+
+      - name: Verify and collect packages
+        run: |
+          set -euo pipefail
+          test -s app-release-signed.apk
+          test -s app-release-bundle.aab
+          mkdir -p release
+          cp app-release-signed.apk release/
+          cp app-release-bundle.aab release/
+          sha256sum release/* > release/SHA256SUMS.txt
+
+      - name: Upload Android packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadence-android
+          path: release/*
+          if-no-files-found: error
+          retention-days: 30
