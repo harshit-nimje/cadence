@@ -25,7 +25,12 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "minSdkVersion": 23,
-  "fingerprints": [],
+  "fingerprints": [
+    {
+      "name": "Cadence upload signing key",
+      "value": "12:6A:AD:D0:C0:A6:81:98:1A:AF:0F:A1:5F:2A:78:FB:A9:06:AF:47:6B:01:CE:21:5B:7B:4E:77:F2:C3:32:85"
+    }
+  ],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "splashScreenFadeOutDuration": 300
