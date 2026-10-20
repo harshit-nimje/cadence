@@ -69,7 +69,8 @@ jobs:
             if (JSON.stringify(pngSize(path)) !== JSON.stringify(size)) throw new Error(path + ' has incorrect dimensions');
           }
           for (const icon of manifest.icons ?? []) {
-            const src = icon.src.split('?')[0].replace(/^\\//, '');
+            const rawSrc = icon.src.split('?')[0];
+            const src = rawSrc.startsWith('/') ? rawSrc.slice(1) : rawSrc;
             if (!fs.existsSync(src)) throw new Error('Manifest references missing icon: ' + icon.src);
           }
           if (!manifest.icons?.some(icon => icon.src === '/icons/maskable-512.png' && icon.purpose === 'maskable')) throw new Error('Manifest missing dedicated maskable icon');
@@ -91,12 +92,12 @@ jobs:
           const vm = require('node:vm');
           const html = fs.readFileSync('index.html', 'utf8');
           if (!/rel=["']manifest["']/.test(html)) throw new Error('HTML does not link the web manifest');
-          if (!/navigator\\.serviceWorker\\.register\\(\\s*["'](?:\\.\\/|\\/)?sw\\.js["']/.test(html)) throw new Error('HTML does not register the local sw.js file');
+          if (!html.includes('navigator.serviceWorker.register') || !html.includes("register('sw.js')")) throw new Error('HTML does not register the local sw.js file');
           if (!html.includes('Cadence')) throw new Error('Cadence product title/branding missing');
-          const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)];
+          const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
           let checked = 0;
           for (const [, attrs, source] of scripts) {
-            if (/\\bsrc\\s*=/.test(attrs) || !source.trim()) continue;
+            if (/\bsrc\s*=/.test(attrs) || !source.trim()) continue;
             new vm.Script(source, { filename: 'index.html inline script ' + (++checked) });
           }
           if (!checked) throw new Error('No inline JavaScript was syntax-checked');
