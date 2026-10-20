@@ -1,67 +1,62 @@
 # Cadence
 
-Cadence is a music-discovery web app. The source of truth for the static site is this repository; production hosting remains on EdgeOne Pages at `https://cadence.edgeone.dev`.
+Cadence is a music-discovery web app with an Android Trusted Web Activity (TWA) wrapper. Production hosting remains on EdgeOne Pages at https://cadence.edgeone.dev.
 
-## Architecture
+## Source files
 
-- `index.html`: the existing Cadence app source, with PWA manifest linking and service-worker registration.
-- `manifest.webmanifest`, `sw.js`, `icons/icon.svg`: PWA shell assets.
-- `.well-known/assetlinks.json`: placeholder for Android Digital Asset Links. It must contain the real signing-certificate fingerprint before Android can verify the TWA as full screen.
-- `twa-manifest.json`: Bubblewrap/Android TWA package configuration.
-- `.github/workflows/deploy-edgeone.yml`: manually deploys only the site files to an existing EdgeOne Pages project.
-- `.github/workflows/android.yml`: builds a signed Android APK and Play Store AAB on GitHub Actions after the deployed website and signing secrets are ready.
+- `index.html`: the existing single-page app.
+- `manifest.webmanifest`, `sw.js`: PWA manifest and app-shell service worker.
+- `icons/icon.svg`, `icons/icon-192.png`, `icons/icon-512.png`: app icons.
+- `.well-known/assetlinks.json`: Android Digital Asset Links statement for package `dev.edgeone.cadence`.
+- `twa-manifest.json`: Bubblewrap configuration for the Android wrapper.
+- `.github/workflows/validate.yml`: checks app files, manifest fields, icon sizes, minimum Android SDK and certificate matching on each push.
+- `.github/workflows/android.yml`: builds a signed APK and Play Store AAB using GitHub Actions.
 
-## Deploy via the connected EdgeOne Git integration
+## Production site deployment
 
-The production EdgeOne Pages project `cadence` is connected to this repository. Its production build should use the repository root (`.`), the `dist` output directory, and the compile command below:
+The existing EdgeOne Pages project `cadence` is connected to this GitHub repository. Keep that connection as the primary deployment route. Its build settings should use repository root `.`, output directory `dist`, and this build command:
 
 ```sh
 mkdir -p dist && cp index.html manifest.webmanifest sw.js dist/ && cp -R icons .well-known dist/
 ```
 
-Pushes to the connected production branch should trigger deployment. Check the EdgeOne deployment history and verify `/manifest.webmanifest`, `/sw.js`, `/icons/icon-192.png`, and `/.well-known/assetlinks.json` on `https://cadence.edgeone.dev` after the deployment. The separate `deploy-edgeone.yml` workflow is not needed when the native Git integration is active.
+After GitHub commits deploy, check the EdgeOne deployment history. The Android build workflow verifies the live site files, including the 192px and 512px icons and `/.well-known/assetlinks.json`, before generating the app.
 
-## Publish the website to the existing EdgeOne project
+The separate `.github/workflows/deploy-edgeone.yml` is an optional manual fallback and is **not needed** while the native EdgeOne Git integration is active. Do not run it unless you intentionally configure its `EDGEONE_API_TOKEN` secret and verify the exact existing EdgeOne project name first.
 
-The existing live page is on EdgeOne Pages. A GitHub commit by itself does **not** update a separately uploaded EdgeOne project unless the project is connected to this repo or you deploy it.
+## Build the Android app
 
-1. In GitHub, open **Settings → Secrets and variables → Actions → New repository secret**.
-2. Add `EDGEONE_API_TOKEN` using an API token from the EdgeOne console. Never commit the token or paste it into a chat.
-3. Open **Actions → Deploy Cadence to EdgeOne Pages → Run workflow**.
-4. Enter the **exact existing EdgeOne Pages project name** shown in the EdgeOne console, not `cadence.edgeone.dev` unless that is literally the project name. Check it carefully: EdgeOne's CLI may create a new project if the name does not already exist.
-5. After deployment, check the live domain serves all of these successfully:
-   - `https://cadence.edgeone.dev/`
-   - `https://cadence.edgeone.dev/manifest.webmanifest`
-   - `https://cadence.edgeone.dev/sw.js`
-   - `https://cadence.edgeone.dev/icons/icon.svg`
-   - `https://cadence.edgeone.dev/.well-known/assetlinks.json`
+1. Keep the signing keystore backed up securely. **Never commit it to this repository or share it in chat.**
+2. In GitHub repository settings, configure these Actions secrets:
+   - `ANDROID_KEYSTORE_BASE64`: Base64 representation of the `cadence-upload.jks` keystore.
+   - `KEYSTORE_PASSWORD`: keystore password.
+   - `KEY_PASSWORD`: key password for alias `android`.
+3. Open **Actions → Build Android (TWA) → Run workflow**, select `main`, then run.
+4. When successful, download the `cadence-android` artifact. It contains `app-release-signed.apk`, `app-release-bundle.aab`, and `SHA256SUMS.txt`.
+5. Install and test the APK on a physical Android device before sharing it.
 
-This workflow copies only static site files; it does not deploy Android configuration, workflow files, or the README to the website.
+The TWA's minimum Android SDK is 24 because the Android Browser Helper dependency used by the generated project requires API 24 or newer.
 
-## Build Android
+## Full-screen verification and Google Play
 
-1. Make sure the website checks above succeed on the live EdgeOne domain first.
-2. Create one Android signing keystore and keep an encrypted backup somewhere safe. Do **not** commit the keystore to GitHub.
-3. Add these GitHub Actions repository secrets:
-   - `ANDROID_KEYSTORE_BASE64`: base64-encoded keystore file
-   - `KEYSTORE_PASSWORD`: keystore password
-   - `KEY_PASSWORD`: key password (often the same password)
-4. Open **Actions → Build Android (TWA) → Run workflow**.
-5. Download the `cadence-android` artifact from a successful run. It should contain `app-release-signed.apk`, `app-release-bundle.aab`, and a SHA-256 checksum file.
-6. Test the APK on a physical Android device before distributing it.
+The `assetlinks.json` statement and `twa-manifest.json` currently reference the local Android upload/signing certificate fingerprint. This enables full-screen verification for an APK signed with that key, assuming the latest site deployment is live and Chrome can fetch the statement.
 
-## Full-screen verification
+If publishing through Google Play App Signing, add the **App signing key certificate SHA-256 fingerprint shown by Play Console** to `assetlinks.json` as an additional fingerprint for the same package. Google Play re-signs the app with the Play app-signing key, which may be different from the upload key used to submit the AAB.
 
-The Android app needs Digital Asset Links at exactly `/.well-known/assetlinks.json` on the same live origin. The current file is an empty JSON array placeholder, so it does not yet verify the app. Replace it with the correct statement and SHA-256 signing-certificate fingerprint. If distributing through Google Play App Signing, use the **app-signing certificate fingerprint** for Play-installed builds, not an unrelated key fingerprint.
+If Digital Asset Links verification fails, Chrome may display browser UI around the TWA rather than showing it full screen. Do not change `packageId` after publishing to Google Play.
 
-Until domain verification succeeds, Chrome may open the TWA in a Custom Tab with browser UI rather than full screen.
+## Versioning and updates
 
-## Updates and versioning
-
-- Website HTML/CSS/JS changes are published by deploying this static source to EdgeOne. The TWA loads the live website; users get web changes when their app next loads the site.
-- Changes to native wrapper settings require a new Android build. Increment both `appVersion` and `appVersionCode` in `twa-manifest.json`; never change `packageId` after publishing to Google Play.
-- Back up the signing keystore. Losing the signing key can disrupt future updates.
+- Website HTML/CSS/JS changes go live through the existing EdgeOne Git integration. The TWA loads the live website, so many web changes do not require a new Android package.
+- Native wrapper changes require another Android build. Increment both `appVersion` and `appVersionCode` in `twa-manifest.json` for each release.
+- Keep multiple secure backups of the signing keystore. Losing it can disrupt future app updates.
 
 ## Local preview
 
-Serve the source over HTTP rather than opening `index.html` as a `file://` URL. For example, run `python -m http.server 8000` in the project folder and open `http://127.0.0.1:8000/`. Validate the Spotify redirect URI and user-management settings on the deployed HTTPS origin.
+Serve the source over HTTP instead of opening the HTML file directly, for example:
+
+```sh
+python -m http.server 8000
+```
+
+Then open http://127.0.0.1:8000/ in a browser. Confirm Spotify OAuth redirect and related provider settings use the deployed HTTPS origin.
