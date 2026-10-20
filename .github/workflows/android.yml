@@ -71,25 +71,49 @@ jobs:
           ls -ld "$SDK_ROOT" "$SDK_ROOT/tools" 2>/dev/null || true
 
       - name: Verify deployed website
+        shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location --retry 2 --retry-delay 2 https://cadence.edgeone.dev/ -o /tmp/cadence-index.html
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/manifest.webmanifest -o /tmp/cadence-manifest.json
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/icons/icon.svg -o /tmp/cadence-icon.svg
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/icons/icon-192.png -o /tmp/cadence-icon-192.png
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/icons/icon-512.png -o /tmp/cadence-icon-512.png
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/sw.js -o /tmp/cadence-sw.js
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/.well-known/assetlinks.json -o /tmp/cadence-assetlinks.json
-          node - <<'NODE'
+          # EdgeOne deploys from Git independently. Wait for it to publish this commit
+          # instead of failing just because its production deployment is still running.
+          deadline=$((SECONDS + 300))
+          attempt=0
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            if curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/ -o /tmp/cadence-index.html 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/manifest.webmanifest -o /tmp/cadence-manifest.json 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/icons/icon.svg -o /tmp/cadence-icon.svg 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/icons/icon-192.png -o /tmp/cadence-icon-192.png 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/icons/icon-512.png -o /tmp/cadence-icon-512.png 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/sw.js -o /tmp/cadence-sw.js 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/.well-known/assetlinks.json -o /tmp/cadence-assetlinks.json 2>/dev/null &&
+               grep -Fq 'rel="manifest"' /tmp/cadence-index.html &&
+               grep -Fq 'navigator.serviceWorker.register' /tmp/cadence-index.html &&
+               node - <<'NODE'
           const fs = require('node:fs');
           const m = JSON.parse(fs.readFileSync('/tmp/cadence-manifest.json', 'utf8'));
           const twa = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
           const links = JSON.parse(fs.readFileSync('/tmp/cadence-assetlinks.json', 'utf8'));
-          if (!m.start_url || !Array.isArray(m.icons) || !m.icons.some(i => i.sizes === '192x192') || !m.icons.some(i => i.sizes === '512x512')) throw new Error('Live PWA manifest is missing start_url or a required raster icon size');
+          const pngSize = p => {
+            const b = fs.readFileSync(p);
+            if (b.length < 24 || b.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error(p + ' is not a PNG');
+            return [b.readUInt32BE(16), b.readUInt32BE(20)];
+          };
+          if (!m.start_url || m.display !== 'standalone' || !Array.isArray(m.icons) || !m.icons.some(i => i.sizes === '192x192') || !m.icons.some(i => i.sizes === '512x512')) throw new Error('Live PWA manifest lacks start_url, standalone display or required raster icons');
+          if (JSON.stringify(pngSize('/tmp/cadence-icon-192.png')) !== '[192,192]') throw new Error('Live 192px icon has incorrect dimensions');
+          if (JSON.stringify(pngSize('/tmp/cadence-icon-512.png')) !== '[512,512]') throw new Error('Live 512px icon has incorrect dimensions');
           if (!Array.isArray(links) || !links.some(x => x.target?.package_name === twa.packageId && x.relation?.includes('delegate_permission/common.handle_all_urls') && twa.fingerprints?.some(f => x.target?.sha256_cert_fingerprints?.includes(f.value)))) throw new Error('Live Digital Asset Links do not match the app package/signing fingerprint');
-          console.log('Live website assets and Digital Asset Links match this Android build.');
+          console.log('Live homepage, PWA manifest, icon dimensions, service-worker bootstrap and Digital Asset Links are valid.');
           NODE
-          file /tmp/cadence-icon-512.png | grep -F '512 x 512'
+            then
+              echo "Production website verification passed on attempt $attempt."
+              exit 0
+            fi
+            echo "Production website has not finished deploying the required Android/PWA assets (attempt $attempt); retrying in 10 seconds."
+            sleep 10
+          done
+          echo "::error::Production website did not pass all checks within 5 minutes. Check the EdgeOne deployment for cadence.edgeone.dev."
+          exit 1
 
       - name: Install Bubblewrap CLI
         run: npm install --global @bubblewrap/cli@1.27.0
@@ -115,6 +139,11 @@ jobs:
           set -euo pipefail
           test -n "$BUBBLEWRAP_KEYSTORE_PASSWORD" || { echo "::error::Add KEYSTORE_PASSWORD to repository Actions secrets."; exit 1; }
           test -n "$BUBBLEWRAP_KEY_PASSWORD" || { echo "::error::Add KEY_PASSWORD to repository Actions secrets."; exit 1; }
+          ACTUAL_FINGERPRINT="$(keytool -list -v -keystore android.keystore -alias android -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" -keypass "$BUBBLEWRAP_KEY_PASSWORD" | awk -F ': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr '[:lower:]' '[:upper:]')"
+          EXPECTED_FINGERPRINT="$(node -e "const t=require('./twa-manifest.json');if(!t.fingerprints?.length)process.exit(1);process.stdout.write(t.fingerprints[0].value.replace(/:/g,'').toUpperCase())")"
+          test -n "$ACTUAL_FINGERPRINT" || { echo "::error::Could not read SHA-256 fingerprint from the configured signing keystore."; exit 1; }
+          test "$ACTUAL_FINGERPRINT" = "$EXPECTED_FINGERPRINT" || { echo "::error::Signing keystore fingerprint does not match twa-manifest.json. Confirm the GitHub secrets point to the same cadence-upload.jks key used to create the configured fingerprint."; exit 1; }
+          echo "Signing keystore fingerprint matches TWA configuration."
           bubblewrap build --manifest=./twa-manifest.json --signingKeyPath=./android.keystore --signingKeyAlias=android
 
       - name: Verify and collect packages
