@@ -40,11 +40,32 @@ jobs:
           test -s icons/icon.svg
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); JSON.parse(require('fs').readFileSync('twa-manifest.json','utf8')); JSON.parse(require('fs').readFileSync('.well-known/assetlinks.json','utf8'));"
 
-      - name: Configure Bubblewrap
+      - name: Configure Bubblewrap and Android SDK paths
+        shell: bash
         run: |
-          mkdir -p "$HOME/.bubblewrap"
-          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > "$HOME/.bubblewrap/config.json"
-          npx --yes @bubblewrap/cli@1.27.0 updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$SDK_ROOT" || { echo "::error::Neither ANDROID_HOME nor ANDROID_SDK_ROOT is set on this runner."; exit 1; }
+          test -d "$SDK_ROOT" || { echo "::error::Android SDK directory does not exist: $SDK_ROOT"; exit 1; }
+
+          # Bubblewrap expects the legacy tools/ or bin/ folder at the SDK root.
+          # GitHub-hosted runners commonly provide cmdline-tools/latest instead.
+          if [ ! -d "$SDK_ROOT/tools" ] && [ ! -d "$SDK_ROOT/bin" ]; then
+            if [ -x "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+              CMDLINE_TOOLS="$SDK_ROOT/cmdline-tools/latest"
+            else
+              CMDLINE_TOOLS="$(find "$SDK_ROOT/cmdline-tools" -mindepth 1 -maxdepth 1 -type d ! -name latest -print 2>/dev/null | sort -V | tail -n 1)"
+            fi
+            test -n "$CMDLINE_TOOLS" || { echo "::error::Could not find Android command-line tools under $SDK_ROOT/cmdline-tools"; ls -la "$SDK_ROOT"; exit 1; }
+            test -x "$CMDLINE_TOOLS/bin/sdkmanager" || { echo "::error::sdkmanager is missing from $CMDLINE_TOOLS/bin"; exit 1; }
+            ln -s "$CMDLINE_TOOLS" "$SDK_ROOT/tools"
+          fi
+
+          test -d "$SDK_ROOT/tools" || test -d "$SDK_ROOT/bin" || { echo "::error::Bubblewrap cannot recognize SDK layout at $SDK_ROOT"; ls -la "$SDK_ROOT"; exit 1; }
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$SDK_ROOT" > "$HOME/.bubblewrap/config.json"
+          npx --yes @bubblewrap/cli@1.27.0 updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$SDK_ROOT"
+          echo "Using Android SDK: $SDK_ROOT"
+          ls -ld "$SDK_ROOT" "$SDK_ROOT/tools" 2>/dev/null || true
 
       - name: Verify deployed website
         run: |
