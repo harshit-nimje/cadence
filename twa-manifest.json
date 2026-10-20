@@ -1,6 +1,6 @@
 {
   "packageId": "dev.edgeone.cadence",
-  "host": "cadence-gray-kappa.vercel.app",
+  "host": "cadence.edgeone.dev",
   "name": "Cadence",
   "launcherName": "Cadence",
   "display": "standalone",
@@ -9,8 +9,8 @@
   "navigationColor": "#120e1d",
   "backgroundColor": "#120e1d",
   "startUrl": "/?source=twa",
-  "iconUrl": "https://cadence-gray-kappa.vercel.app/icons/icon.svg",
-  "webManifestUrl": "https://cadence-gray-kappa.vercel.app/manifest.webmanifest",
+  "iconUrl": "https://cadence.edgeone.dev/icons/icon.svg",
+  "webManifestUrl": "https://cadence.edgeone.dev/manifest.webmanifest",
   "appVersion": "1.0.0",
   "appVersionCode": 1,
   "signingKey": {
@@ -18,7 +18,7 @@
     "alias": "android"
   },
   "fallbackType": "customtabs",
-  "maskableIconUrl": "https://cadence-gray-kappa.vercel.app/icons/icon.svg",
+  "maskableIconUrl": "https://cadence.edgeone.dev/icons/icon.svg",
   "themeColorDark": "#120e1d",
   "navigationColorDark": "#120e1d",
   "enableNotifications": false,
