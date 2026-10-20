@@ -35,8 +35,11 @@ jobs:
           test -s sw.js
           test -s twa-manifest.json
           test -s icons/icon.svg
+          test -s icons/icon-96.png
+          test -s icons/apple-touch-icon.png
           test -s icons/icon-192.png
           test -s icons/icon-512.png
+          test -s icons/maskable-512.png
           test -s .well-known/assetlinks.json
           test -s .github/workflows/android.yml
           test -s .github/workflows/deploy-edgeone.yml
@@ -56,8 +59,20 @@ jobs:
             if (b.length < 24 || b.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error(path + ' is not a valid PNG');
             return [b.readUInt32BE(16), b.readUInt32BE(20)];
           };
-          if (JSON.stringify(pngSize('icons/icon-192.png')) !== '[192,192]') throw new Error('192px icon file has incorrect dimensions');
-          if (JSON.stringify(pngSize('icons/icon-512.png')) !== '[512,512]') throw new Error('512px icon file has incorrect dimensions');
+          for (const [path, size] of Object.entries({
+            'icons/icon-96.png': [96, 96],
+            'icons/apple-touch-icon.png': [180, 180],
+            'icons/icon-192.png': [192, 192],
+            'icons/icon-512.png': [512, 512],
+            'icons/maskable-512.png': [512, 512]
+          })) {
+            if (JSON.stringify(pngSize(path)) !== JSON.stringify(size)) throw new Error(path + ' has incorrect dimensions');
+          }
+          for (const icon of manifest.icons ?? []) {
+            const src = icon.src.split('?')[0].replace(/^\\//, '');
+            if (!fs.existsSync(src)) throw new Error('Manifest references missing icon: ' + icon.src);
+          }
+          if (!manifest.icons?.some(icon => icon.src === '/icons/maskable-512.png' && icon.purpose === 'maskable')) throw new Error('Manifest missing dedicated maskable icon');
           if (!twa.packageId || !twa.host || !twa.appVersion || !Number.isInteger(twa.appVersionCode)) throw new Error('TWA manifest missing package/version/host');
           if (!Number.isInteger(twa.minSdkVersion) || twa.minSdkVersion < 24) throw new Error('TWA minimum SDK must be 24 or newer for Android Browser Helper 2.7.4');
           if (!Array.isArray(links)) throw new Error('Digital Asset Links file must be a JSON array');
@@ -69,12 +84,22 @@ jobs:
           console.log('Digital Asset Links package and signing fingerprint match twa-manifest.json.');
           NODE
 
-      - name: Verify PWA bootstrap
-        shell: bash
+      - name: Verify PWA bootstrap and JavaScript syntax
         run: |
-          set -euo pipefail
-          grep -Fq 'rel="manifest"' index.html
-          grep -Fq 'navigator.serviceWorker.register' index.html
-          grep -Fq '/sw.js' index.html
-          grep -Fq 'Cadence' index.html
-          echo "PWA manifest and service-worker bootstrap are present."
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const html = fs.readFileSync('index.html', 'utf8');
+          if (!/rel=["']manifest["']/.test(html)) throw new Error('HTML does not link the web manifest');
+          if (!/navigator\\.serviceWorker\\.register\\(\\s*["'](?:\\.\\/|\\/)?sw\\.js["']/.test(html)) throw new Error('HTML does not register the local sw.js file');
+          if (!html.includes('Cadence')) throw new Error('Cadence product title/branding missing');
+          const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)];
+          let checked = 0;
+          for (const [, attrs, source] of scripts) {
+            if (/\\bsrc\\s*=/.test(attrs) || !source.trim()) continue;
+            new vm.Script(source, { filename: 'index.html inline script ' + (++checked) });
+          }
+          if (!checked) throw new Error('No inline JavaScript was syntax-checked');
+          new vm.Script(fs.readFileSync('sw.js', 'utf8'), { filename: 'sw.js' });
+          console.log('Manifest link and sw.js registration are present; ' + checked + ' inline scripts and sw.js passed syntax checks.');
+          NODE
