@@ -49,9 +49,9 @@ jobs:
       - name: Verify deployed website
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location --retry 2 --retry-delay 2 https://cadence.edgeone.dev/ -o /tmp/cadence-index.html
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/manifest.webmanifest -o /tmp/cadence-manifest.json
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/icons/icon.svg -o /tmp/cadence-icon.svg
+          curl --fail --silent --show-error --location --retry 2 --retry-delay 2 https://cadence-gray-kappa.vercel.app/ -o /tmp/cadence-index.html
+          curl --fail --silent --show-error --location https://cadence-gray-kappa.vercel.app/manifest.webmanifest -o /tmp/cadence-manifest.json
+          curl --fail --silent --show-error --location https://cadence-gray-kappa.vercel.app/icons/icon.svg -o /tmp/cadence-icon.svg
           node -e "const m=JSON.parse(require('fs').readFileSync('/tmp/cadence-manifest.json','utf8')); if(!m.start_url || !Array.isArray(m.icons) || !m.icons.length) process.exit(1);"
 
       - name: Install Bubblewrap CLI
