@@ -11,6 +11,16 @@ Cadence is a music-discovery web app. The source of truth for the static site is
 - `.github/workflows/deploy-edgeone.yml`: manually deploys only the site files to an existing EdgeOne Pages project.
 - `.github/workflows/android.yml`: builds a signed Android APK and Play Store AAB on GitHub Actions after the deployed website and signing secrets are ready.
 
+## Deploy via the connected EdgeOne Git integration
+
+The production EdgeOne Pages project `cadence` is connected to this repository. Its production build should use the repository root (`.`), the `dist` output directory, and the compile command below:
+
+```sh
+mkdir -p dist && cp index.html manifest.webmanifest sw.js dist/ && cp -R icons .well-known dist/
+```
+
+Pushes to the connected production branch should trigger deployment. Check the EdgeOne deployment history and verify `/manifest.webmanifest`, `/sw.js`, `/icons/icon-192.png`, and `/.well-known/assetlinks.json` on `https://cadence.edgeone.dev` after the deployment. The separate `deploy-edgeone.yml` workflow is not needed when the native Git integration is active.
+
 ## Publish the website to the existing EdgeOne project
 
 The existing live page is on EdgeOne Pages. A GitHub commit by itself does **not** update a separately uploaded EdgeOne project unless the project is connected to this repo or you deploy it.
