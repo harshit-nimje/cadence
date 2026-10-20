@@ -52,6 +52,7 @@ jobs:
           if (!manifest.icons?.some(icon => icon.sizes === '192x192')) throw new Error('PWA manifest missing 192x192 icon');
           if (!manifest.icons?.some(icon => icon.sizes === '512x512')) throw new Error('PWA manifest missing 512x512 icon');
           if (!twa.packageId || !twa.host || !twa.appVersion || !Number.isInteger(twa.appVersionCode)) throw new Error('TWA manifest missing package/version/host');
+          if (!Number.isInteger(twa.minSdkVersion) || twa.minSdkVersion < 24) throw new Error('TWA minimum SDK must be 24 or newer for Android Browser Helper 2.7.4');
           if (!Array.isArray(links)) throw new Error('Digital Asset Links file must be a JSON array');
           console.log('PWA manifest, TWA manifest, and both required raster icon sizes parsed successfully.');
           const expected = twa.fingerprints?.map(f => f.value) ?? [];
