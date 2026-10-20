@@ -62,6 +62,7 @@ jobs:
           fi
 
           test -d "$SDK_ROOT/tools" || test -d "$SDK_ROOT/bin" || { echo "::error::Bubblewrap cannot recognize SDK layout at $SDK_ROOT"; ls -la "$SDK_ROOT"; exit 1; }
+          mkdir -p "$HOME/.bubblewrap"
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$SDK_ROOT" > "$HOME/.bubblewrap/config.json"
           npx --yes @bubblewrap/cli@1.27.0 updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$SDK_ROOT"
           echo "Using Android SDK: $SDK_ROOT"
