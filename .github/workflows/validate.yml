@@ -36,6 +36,7 @@ jobs:
           test -s twa-manifest.json
           test -s icons/icon.svg
           test -s icons/icon-192.png
+          test -s icons/icon-512.png
           test -s .well-known/assetlinks.json
           test -s .github/workflows/android.yml
           test -s .github/workflows/deploy-edgeone.yml
@@ -49,10 +50,15 @@ jobs:
           const links = JSON.parse(fs.readFileSync('.well-known/assetlinks.json', 'utf8'));
           if (!manifest.name || manifest.display !== 'standalone') throw new Error('PWA manifest missing required name/display');
           if (!manifest.icons?.some(icon => icon.sizes === '192x192')) throw new Error('PWA manifest missing 192x192 icon');
+          if (!manifest.icons?.some(icon => icon.sizes === '512x512')) throw new Error('PWA manifest missing 512x512 icon');
           if (!twa.packageId || !twa.host || !twa.appVersion || !Number.isInteger(twa.appVersionCode)) throw new Error('TWA manifest missing package/version/host');
           if (!Array.isArray(links)) throw new Error('Digital Asset Links file must be a JSON array');
-          console.log('PWA manifest and TWA manifest parsed successfully.');
-          console.log('Digital Asset Links JSON parsed; populated signing statement is still required for full-screen verification.');
+          console.log('PWA manifest, TWA manifest, and both required raster icon sizes parsed successfully.');
+          const expected = twa.fingerprints?.map(f => f.value) ?? [];
+          if (!links.some(link => link.target?.package_name === twa.packageId && link.relation?.includes('delegate_permission/common.handle_all_urls') && expected.some(fp => link.target?.sha256_cert_fingerprints?.includes(fp)))) {
+            throw new Error('Digital Asset Links does not contain the TWA package and configured signing fingerprint');
+          }
+          console.log('Digital Asset Links package and signing fingerprint match twa-manifest.json.');
           NODE
 
       - name: Verify PWA bootstrap
