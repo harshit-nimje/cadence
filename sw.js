@@ -1,54 +1,70 @@
-/* Cadence service worker: cache the same-origin app shell for offline launch.
- * Third-party APIs, Spotify, Supabase, audio previews, and fonts stay network-only.
+/* Cadence v0.2 service worker: app-shell + runtime caching.
+ * API/auth/audio/artwork requests are deliberately left to the network.
+ * Change VERSION when deploying a new cache-incompatible shell.
  */
-const CACHE_NAME = "cadence-shell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
+const VERSION = 'cadence-v0.2';
+const SHELL = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icons/icon-96.png',
+  './icons/apple-touch-icon.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/maskable-512.png'
+];
+const CDN_HOSTS = ['cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
-self.addEventListener("activate", event => {
+self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key !== VERSION).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("fetch", event => {
+self.addEventListener('fetch', event => {
   const request = event.request;
-  if (request.method !== "GET") return;
-
+  if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith((async () => {
-      try {
-        const response = await fetch(request);
-        if (response && response.ok) {
-          const copy = response.clone();
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put("/", copy);
-        }
-        return response;
-      } catch (_) {
-        return (await caches.match(request, { ignoreSearch: true }))
-          || (await caches.match("/", { ignoreSearch: true }))
-          || Response.error();
-      }
-    })());
+  // Never intercept authentication, API, iTunes catalogue, or audio requests.
+  if (/spotify\.com$|supabase\.co$|itunes\.apple\.com$/.test(url.hostname)) return;
+  if (request.headers.has('range')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('./index.html').then(hit => {
+        const network = fetch(request).then(response => {
+          if (response && response.ok && response.type === 'basic') {
+            caches.open(VERSION).then(cache => cache.put('./index.html', response.clone()));
+          }
+          return response;
+        }).catch(() => hit || caches.match('./'));
+        return hit || network;
+      })
+    );
     return;
   }
 
-  const path = url.pathname;
-  if (!["/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"].includes(path)) return;
+  const sameOrigin = url.origin === self.location.origin;
+  const cdn = CDN_HOSTS.includes(url.hostname);
+  if (!sameOrigin && !cdn) return;
+
   event.respondWith(
-    caches.match(request).then(hit => hit || fetch(request))
+    caches.open(VERSION).then(async cache => {
+      const hit = await cache.match(request);
+      const network = fetch(request).then(response => {
+        if (response && (response.ok || response.type === 'opaque')) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      }).catch(() => hit);
+      return hit || network;
+    })
   );
 });

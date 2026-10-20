@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="theme-color" content="#120e1d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no"><meta name="application-name" content="Cadence"><meta name="apple-mobile-web-app-title" content="Cadence"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>html,body{background:#120e1d}</style>
@@ -449,13 +449,16 @@ nav button:active{scale:.9}
 .obx .lnk{margin:0;flex:1;min-height:44px;display:grid;place-items:center;text-decoration:none;color:var(--dim);font-size:14px}
 
 /* step 0 hero: the deck swipes itself */
-.hero0{position:relative;flex:1 1 auto;min-height:170px;max-height:340px;display:grid;place-items:center;margin:2px 0 14px}
+.hero0{position:relative;flex:1 0 auto;min-height:230px;max-height:340px;display:grid;place-items:center;margin:2px 0 14px}
 .hero0:before{content:"";position:absolute;width:74%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(255,92,138,.4),transparent);filter:blur(28px);animation:breathe 4s ease-in-out infinite alternate}
 @keyframes breathe{to{scale:1.22;opacity:.65}}
 .deck0{position:relative;height:calc(100% - 32px);align-self:start;margin-top:4px;max-height:300px;aspect-ratio:3/4;max-width:78%}
 .step>.h0,.step>.sub{position:relative;z-index:1}
 .c0{position:absolute;inset:0;border-radius:22px;transform-origin:50% 92%;transition:transform .6s var(--ease),opacity .45s,filter .5s}
-.c0[data-p="0"]{animation:f0 4.2s ease-in-out infinite}
+.c0[data-p="0"]{z-index:3;animation:f0 4.2s ease-in-out infinite}
+.c0[data-p="1"]{z-index:2}.c0[data-p="2"]{z-index:1}
+.c0:not([data-p="0"]) .c0s,.c0:not([data-p="0"]) .c0i{opacity:0}
+.c0s,.c0i{transition:opacity .4s}
 .c0[data-p="1"]{transform:translateY(12px) scale(.94);filter:brightness(.7)}
 .c0[data-p="2"]{transform:translateY(24px) scale(.88);filter:brightness(.5)}
 @keyframes f0{50%{translate:0 -5px}}
@@ -490,6 +493,9 @@ nav button:active{scale:.9}
 .burst{position:fixed;width:0;height:0;pointer-events:none;z-index:25}
 .burst i{position:absolute;width:7px;height:11px;margin:-5px 0 0 -3px;border-radius:2px;background:hsl(var(--h) 90% 66%);animation:burst .95s var(--ease) forwards}
 @keyframes burst{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+
+.obnav,.obnav>*,.btn.big{flex-shrink:0}
+.step>*{flex-shrink:0}
 
 </style></head><body>
 <div id="bg"></div>
@@ -991,12 +997,12 @@ async function seedFromSpotify() {
   const btn = $('#spotifyBtn');
   try {
     const [artists, tracks] = await Promise.all([
-      SP.api('/me/top/artists?limit=25&time_range=medium_term'),
-      SP.api('/me/top/tracks?limit=30&time_range=medium_term')
+      SP.api('/me/top/artists?limit=25&time_range=medium_term'),      SP.api('/me/top/tracks?limit=30&time_range=medium_term')
     ]);
     const names = (artists.items || []).map(a => a.name);
     const artistIds = (artists.items || []).map(a => a.id);
     const trackQ = (tracks.items || []).map(t => `${t.name} ${t.artists[0].name}`);
+
     // Pre-seed the taste vector directly from top artists' genres
     const genreCount = {};
     (artists.items || []).forEach(a => (a.genres || []).forEach(g => {

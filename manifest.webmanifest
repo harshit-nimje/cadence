@@ -1,14 +1,23 @@
 {
   "id": "/",
-  "name": "Cadence — Discover your taste in music",
+  "name": "Cadence",
   "short_name": "Cadence",
-  "description": "Swipe to discover music that fits your taste.",
+  "description": "Swipe to find your sound.",
+  "lang": "en",
   "start_url": "/?source=twa",
   "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
   "background_color": "#120e1d",
   "theme_color": "#120e1d",
+  "categories": [
+    "music",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -23,10 +32,16 @@
       "purpose": "any"
     },
     {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any"
     }
   ]
 }

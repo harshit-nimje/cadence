@@ -158,8 +158,11 @@ The current web implementation intentionally keeps its core recommendation logic
 ├── sw.js                      # Cache-first shell/offline fallback behavior
 ├── icons/
 │   ├── icon.svg
+│   ├── icon-96.png
+│   ├── apple-touch-icon.png
 │   ├── icon-192.png
-│   └── icon-512.png
+│   ├── icon-512.png
+│   └── maskable-512.png
 ├── .well-known/
 │   └── assetlinks.json        # Android Digital Asset Links for the TWA package
 └── .github/workflows/
