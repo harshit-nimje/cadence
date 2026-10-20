@@ -2,7 +2,7 @@
  * Third-party APIs, Spotify, Supabase, audio previews, and fonts stay network-only.
  */
 const CACHE_NAME = "cadence-shell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png"];
+const SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -47,7 +47,7 @@ self.addEventListener("fetch", event => {
   }
 
   const path = url.pathname;
-  if (!["/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png"].includes(path)) return;
+  if (!["/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"].includes(path)) return;
   event.respondWith(
     caches.match(request).then(hit => hit || fetch(request))
   );
