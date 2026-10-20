@@ -38,7 +38,9 @@ jobs:
           test -s sw.js
           test -s twa-manifest.json
           test -s icons/icon.svg
-          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); JSON.parse(require('fs').readFileSync('twa-manifest.json','utf8')); JSON.parse(require('fs').readFileSync('.well-known/assetlinks.json','utf8'));"
+          test -s icons/icon-192.png
+          test -s icons/icon-512.png
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8')); const t=JSON.parse(fs.readFileSync('twa-manifest.json','utf8')); const a=JSON.parse(fs.readFileSync('.well-known/assetlinks.json','utf8')); if(!m.icons.some(i=>i.sizes==='192x192') || !m.icons.some(i=>i.sizes==='512x512')) throw Error('Manifest requires 192x192 and 512x512 icons'); if(!Array.isArray(a) || !a.some(x=>x.target?.package_name===t.packageId && x.relation?.includes('delegate_permission/common.handle_all_urls') && t.fingerprints?.some(f=>x.target?.sha256_cert_fingerprints?.includes(f.value)))) throw Error('Digital Asset Links does not match TWA package/fingerprint');"
 
       - name: Configure Bubblewrap and Android SDK paths
         shell: bash
@@ -74,9 +76,20 @@ jobs:
           curl --fail --silent --show-error --location --retry 2 --retry-delay 2 https://cadence.edgeone.dev/ -o /tmp/cadence-index.html
           curl --fail --silent --show-error --location https://cadence.edgeone.dev/manifest.webmanifest -o /tmp/cadence-manifest.json
           curl --fail --silent --show-error --location https://cadence.edgeone.dev/icons/icon.svg -o /tmp/cadence-icon.svg
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/icons/icon-192.png -o /tmp/cadence-icon-192.png
-          curl --fail --silent --show-error --location https://cadence.edgeone.dev/sw.js -o /tmp/cadence-sw.js
-          node -e "const m=JSON.parse(require('fs').readFileSync('/tmp/cadence-manifest.json','utf8')); if(!m.start_url || !Array.isArray(m.icons) || !m.icons.some(i => i.sizes === '192x192') || !m.icons.some(i => i.sizes === 'any')) process.exit(1);"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/icons/icon-192.png -o /tmp/cadence-icon-192.png
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/icons/icon-512.png -o /tmp/cadence-icon-512.png
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/sw.js -o /tmp/cadence-sw.js
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 https://cadence.edgeone.dev/.well-known/assetlinks.json -o /tmp/cadence-assetlinks.json
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const m = JSON.parse(fs.readFileSync('/tmp/cadence-manifest.json', 'utf8'));
+          const twa = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
+          const links = JSON.parse(fs.readFileSync('/tmp/cadence-assetlinks.json', 'utf8'));
+          if (!m.start_url || !Array.isArray(m.icons) || !m.icons.some(i => i.sizes === '192x192') || !m.icons.some(i => i.sizes === '512x512')) throw new Error('Live PWA manifest is missing start_url or a required raster icon size');
+          if (!Array.isArray(links) || !links.some(x => x.target?.package_name === twa.packageId && x.relation?.includes('delegate_permission/common.handle_all_urls') && twa.fingerprints?.some(f => x.target?.sha256_cert_fingerprints?.includes(f.value)))) throw new Error('Live Digital Asset Links do not match the app package/signing fingerprint');
+          console.log('Live website assets and Digital Asset Links match this Android build.');
+          NODE
+          file /tmp/cadence-icon-512.png | grep -F '512 x 512'
 
       - name: Install Bubblewrap CLI
         run: npm install --global @bubblewrap/cli@1.27.0
