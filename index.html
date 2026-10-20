@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
-<meta name="apple-mobile-web-app-title" content="Cadence">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta charset="utf-8"><meta name="theme-color" content="#120e1d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><meta charset="utf-8"><meta name="theme-color" content="#120e1d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no"><meta name="application-name" content="Cadence"><meta name="apple-mobile-web-app-title" content="Cadence"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>html,body{background:#120e1d}</style>
 <title>Cadence — swipe to find your sound</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
@@ -386,6 +384,112 @@ body:not([data-view="discover"]) #dpill{display:none}
 .dpill.mini svg{width:15px;height:15px}
 body[data-dpill="big"] .stage{--cw:min(86vw,400px,calc((100dvh - 348px)/1.4))}
 @media(max-width:720px){body[data-dpill="big"] .stage{--cw:min(86vw,360px,calc((100dvh - 390px)/1.4))}}
+
+
+/* ================= v8: native app layer ================= */
+:root{--spring:cubic-bezier(.34,1.56,.64,1)}
+html{background:var(--bg);color-scheme:dark;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+*,*::before,*::after{-webkit-tap-highlight-color:transparent}
+*{-webkit-touch-callout:none}
+::selection{background:rgba(255,92,138,.35);color:inherit}
+img{-webkit-user-drag:none;user-drag:none}
+button,a,[role=button],.item,.chip,.lv{outline:none}
+button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}
+input,textarea{font-size:16px;-webkit-user-select:text;user-select:text;caret-color:var(--like)}
+input:-webkit-autofill,input:-webkit-autofill:focus{-webkit-text-fill-color:var(--ink);box-shadow:0 0 0 100px #1c1530 inset;caret-color:var(--ink);transition:background-color 9999s}
+.view,#sheet .sp,.ob,.step,#tourCap{overscroll-behavior:none;scrollbar-width:none}
+::-webkit-scrollbar{display:none}
+html[data-app] .keys{display:none}
+
+/* press feedback: springy, on every tappable */
+nav button{transition:background .3s var(--ease),color .3s var(--ease),scale .28s var(--spring)}
+nav button:active{scale:.9}
+.sm{position:relative;transition:scale .25s var(--spring),background .2s,color .2s,border-color .2s}
+.sm:active{scale:.86}
+.sm:after{content:"";position:absolute;inset:-4px}
+.chip{min-height:44px}
+.dpill:active{scale:.95}
+
+/* perf: backdrop blur on every list row janks mid-range Android. Keep it on header, nav and sheet only. */
+.item,.panel,.hero,.lv,.chip,.spbox,.reveal2,.act,.gr,.t{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.item,.panel,.hero,.lv,.reveal2,.chip,.act{background:rgba(33,25,53,.78)}
+.item{content-visibility:auto;contain-intrinsic-size:auto 76px}
+#bg div{filter:blur(44px) saturate(1.5) brightness(.6);will-change:opacity}
+.glow{filter:blur(22px)}
+@keyframes stepin{from{opacity:0;transform:translateY(18px)}}
+
+/* loading state: shimmer, not a static label */
+.empty b{background:linear-gradient(90deg,var(--ink) 30%,rgba(255,255,255,.3) 50%,var(--ink) 70%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim 1.7s linear infinite}
+@keyframes shim{to{background-position:-220% 0}}
+
+/* ---------- onboarding ---------- */
+#onboard .orb{transition:translate 1.6s var(--ease),scale 1.6s var(--ease),opacity 1.2s,background-color 1s}
+#onboard[data-s="1"] .orb.a{translate:10vmax 14vmax;scale:.85}
+#onboard[data-s="1"] .orb.b{translate:-12vmax -10vmax}
+#onboard[data-s="2"] .orb.a{translate:4vmax 30vmax;scale:1.1;background:hsl(var(--vh,340) 100% 66%)}
+#onboard[data-s="2"] .orb.c{opacity:.34;scale:1.5}
+#onboard[data-s="3"] .orb.a{translate:20vmax 2vmax;scale:1.25}
+#onboard[data-s="3"] .orb.c{opacity:.4;scale:1.3}
+#onboard[data-s="4"] .orb.b{translate:-20vmax -18vmax}
+.step{animation:none;margin-inline:-22px;padding-inline:22px}
+#onboard{padding:0}
+.step.fwd{animation:obF .6s var(--ease)}
+.step.bck{animation:obB .6s var(--ease)}
+@keyframes obF{from{opacity:0;transform:translateX(38px)}}
+@keyframes obB{from{opacity:0;transform:translateX(-38px)}}
+.step>*{animation-name:rise;animation-duration:.6s}
+.step>:nth-child(6){animation-delay:.4s}.step>:nth-child(7){animation-delay:.48s}
+.obnav{position:sticky;bottom:0;z-index:3;margin-top:auto;padding:22px 0 max(4px,env(safe-area-inset-bottom))}
+.obnav.col{flex-direction:column;align-items:stretch;gap:2px}
+.btn.big{height:56px;font-size:17px;width:100%;animation:cta 2.8s ease-in-out infinite}
+@keyframes cta{50%{box-shadow:0 0 0 9px rgba(246,241,234,.1)}}
+.btn.big:active{animation:none}
+.obx{display:flex;justify-content:space-between}
+.obx .lnk{margin:0;flex:1;min-height:44px;display:grid;place-items:center;text-decoration:none;color:var(--dim);font-size:14px}
+
+/* step 0 hero: the deck swipes itself */
+.hero0{position:relative;flex:1 1 auto;min-height:170px;max-height:340px;display:grid;place-items:center;margin:2px 0 14px}
+.hero0:before{content:"";position:absolute;width:74%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(255,92,138,.4),transparent);filter:blur(28px);animation:breathe 4s ease-in-out infinite alternate}
+@keyframes breathe{to{scale:1.22;opacity:.65}}
+.deck0{position:relative;height:calc(100% - 32px);align-self:start;margin-top:4px;max-height:300px;aspect-ratio:3/4;max-width:78%}
+.step>.h0,.step>.sub{position:relative;z-index:1}
+.c0{position:absolute;inset:0;border-radius:22px;transform-origin:50% 92%;transition:transform .6s var(--ease),opacity .45s,filter .5s}
+.c0[data-p="0"]{animation:f0 4.2s ease-in-out infinite}
+.c0[data-p="1"]{transform:translateY(12px) scale(.94);filter:brightness(.7)}
+.c0[data-p="2"]{transform:translateY(24px) scale(.88);filter:brightness(.5)}
+@keyframes f0{50%{translate:0 -5px}}
+.c0[data-o="r"]{transform:translateX(125%) rotate(17deg);opacity:0;animation:none}
+.c0[data-o="l"]{transform:translateX(-125%) rotate(-17deg);opacity:0;animation:none}
+.c0f{position:absolute;inset:0;border-radius:inherit;overflow:hidden;background:linear-gradient(160deg,hsl(var(--h) 55% 35%),#1a1326);box-shadow:0 24px 50px -16px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.14)}
+.c0f img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.c0f:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,6,18,.15),transparent 30%,transparent 46%,rgba(10,6,18,.92))}
+.c0s{position:absolute;top:12px;left:14px;z-index:2;text-shadow:0 2px 16px rgba(0,0,0,.4)}
+.c0s b{display:block;font:800 34px/.9 var(--d);letter-spacing:-.05em}.c0s b sup{font-size:.4em;letter-spacing:0;margin-left:2px;vertical-align:top;position:relative;top:.3em}
+.c0s small{font:600 11px var(--b);opacity:.85}
+.c0i{position:absolute;left:14px;right:14px;bottom:14px;z-index:2}
+.c0i h3{font:800 19px/1.08 var(--d);letter-spacing:-.025em;margin:0 0 3px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.c0i p{font-size:13px;color:rgba(255,255,255,.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c0v{position:absolute;inset:0;z-index:3;display:grid;place-items:center;opacity:0;transition:opacity .22s}
+.c0v svg{width:58px;height:58px;stroke-width:1.6}
+.c0v.like{background:radial-gradient(120% 90% at 100% 55%,rgba(255,92,138,.96),rgba(255,92,138,.55) 70%)}.c0v.like svg{fill:currentColor}
+.c0v.nope{background:radial-gradient(120% 90% at 0% 55%,rgba(91,134,255,.96),rgba(91,134,255,.55) 70%)}
+.c0[data-o="r"] .c0v.like,.c0[data-o="l"] .c0v.nope{opacity:1}
+.h0 span{display:inline-block;animation:rise .7s var(--ease) backwards;animation-delay:calc(.2s + var(--w)*.06s)}
+.step>.h0{animation:none}
+
+/* step 2: live visualizer follows the sliders */
+.lq{display:flex;gap:3px;height:64px;align-items:center;justify-content:space-between;margin:0 0 6px}
+.lq i{flex:1;height:100%;max-width:calc(4px + (1 - var(--ac,.5))*8px);border-radius:calc(1px + var(--ac,.5)*5px);background:hsl(var(--vh,290) 90% 68%);--amp:calc(.22 + var(--ev,.5)*.78);animation:lq calc(1.5s - var(--ev,.5)*1.05s) ease-in-out infinite alternate;animation-delay:calc(var(--d)*-1s);transition:background .3s}
+@keyframes lq{from{transform:scaleY(.1)}to{transform:scaleY(var(--amp,.6))}}
+
+/* step 3: reveal */
+.wd{display:inline-block;white-space:nowrap}
+.lt{display:inline-block;animation:letter .75s var(--spring) backwards;animation-delay:calc(.12s + var(--i)*28ms)}
+@keyframes letter{from{opacity:0;transform:translateY(.6em) rotate(7deg)}}
+.burst{position:fixed;width:0;height:0;pointer-events:none;z-index:25}
+.burst i{position:absolute;width:7px;height:11px;margin:-5px 0 0 -3px;border-radius:2px;background:hsl(var(--h) 90% 66%);animation:burst .95s var(--ease) forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 
 </style></head><body>
 <div id="bg"></div>
@@ -893,7 +997,6 @@ async function seedFromSpotify() {
     const names = (artists.items || []).map(a => a.name);
     const artistIds = (artists.items || []).map(a => a.id);
     const trackQ = (tracks.items || []).map(t => `${t.name} ${t.artists[0].name}`);
-
     // Pre-seed the taste vector directly from top artists' genres
     const genreCount = {};
     (artists.items || []).forEach(a => (a.genres || []).forEach(g => {
@@ -1561,38 +1664,168 @@ setPillMode();
 
 </script>
 <script>
-/* Cadence PWA shell: only same-origin requests are handled by sw.js. */
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js', {scope: '/'}).catch(function (error) {
-      console.warn('Cadence service worker registration failed:', error);
-    });
+/* ================= v8: native app layer (TWA) ================= */
+(function(){
+const Q=s=>document.querySelector(s),root=document.documentElement;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STANDALONE=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true||document.referrer.startsWith('android-app://');
+const APP=STANDALONE||matchMedia('(pointer: coarse)').matches;
+if(APP)root.dataset.app='1';
+const tick=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+
+/* service worker: offline shell */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* native feel: no context menu, no image drag, keyboard keeps focused field in view */
+if(APP){
+  addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+  addEventListener('dragstart',e=>e.preventDefault());
+  addEventListener('gesturestart',e=>e.preventDefault());
+}
+addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('input,textarea'))setTimeout(()=>{try{e.target.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){}},320)});
+
+/* connectivity */
+addEventListener('offline',()=>toast("You're offline. New songs need a connection.",'err'));
+addEventListener('online',()=>toast('Back online'));
+
+/* tab bar: haptic tick, tap the active tab to scroll to top */
+Q('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tick(5);if(b.classList.contains('on')){const v=Q('.view.on');if(v&&v.scrollTop>0)v.scrollTo({top:0,behavior:'smooth'})}},true);
+
+/* haptics on chips and buttons in onboarding */
+Q('#obStep').addEventListener('click',e=>{if(e.target.closest('.chip'))tick(6);else if(e.target.closest('.btn'))tick(8)});
+
+/* audio: stop when the app is backgrounded, resume on return */
+let resume=false;
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(!audio.paused){resume=true;audio.pause();sync()}}
+  else if(resume){resume=false;audio.play().catch(()=>{});sync()}
+});
+
+/* lock screen + notification controls, headset buttons */
+if('mediaSession' in navigator&&window.MediaMetadata){
+  const ms=navigator.mediaSession,_p=playTrack;
+  playTrack=function(t){const r=_p.apply(this,arguments);try{if(t)ms.metadata=new MediaMetadata({title:t.t,artist:t.a,album:'Cadence',artwork:t.art?[{src:artOf(t),sizes:'600x600',type:'image/jpeg'}]:[]})}catch(_){}return r};
+  audio.addEventListener('play',()=>{ms.playbackState='playing'});
+  audio.addEventListener('pause',()=>{ms.playbackState='paused'});
+  const set=(a,f)=>{try{ms.setActionHandler(a,f)}catch(_){}};
+  set('play',()=>audio.play());set('pause',()=>audio.pause());
+  set('nexttrack',()=>Q('#bSkip').click());set('previoustrack',()=>Q('#bUndo').click());
+}
+
+/* Android back button: close the top layer, then go Home, then double-press to exit */
+if(STANDALONE){
+  let armT=0;
+  const arm=()=>{try{history.pushState({cadence:1},'')}catch(_){}};
+  const closeTop=()=>{
+    if(Q('#sheet').classList.contains('show')){closeSheet();return true}
+    if(Q('#tour').classList.contains('on')){const b=Q('#tourCap [data-t="skip"]')||Q('#tourCap .btn');if(b)b.click();return true}
+    if(Q('#onboard').classList.contains('open')&&obStep>0){obStep--;rOb();return true}
+    return false;
+  };
+  try{history.replaceState({cadence:0},'')}catch(_){}
+  arm();
+  addEventListener('popstate',()=>{
+    clearTimeout(armT);
+    if(closeTop()){arm();return}
+    if(view!=='discover'&&!Q('#onboard').classList.contains('open')){go('discover');arm();return}
+    toast('Press back again to exit');
+    armT=setTimeout(arm,2200);
   });
 }
-/* Preserve the in-app view stack for Android/Chrome's system Back action. */
-(function () {
-  if (typeof window.go !== 'function' || window.go.__cadenceHistoryWrapped) return;
-  var originalGo = window.go;
-  var lastView = 'discover';
-  var wrappedGo = function (nextView) {
-    if (typeof nextView === 'string' && nextView !== lastView) {
-      try { history.pushState({ cadenceView: nextView }, '', '#' + encodeURIComponent(nextView)); } catch (_) {}
-    }
-    var result = originalGo.apply(this, arguments);
-    if (typeof nextView === 'string') lastView = nextView;
-    return result;
-  };
-  wrappedGo.__cadenceHistoryWrapped = true;
-  window.go = wrappedGo;
-  window.addEventListener('popstate', function () {
-    var nextView;
-    try { nextView = decodeURIComponent(location.hash.slice(1) || 'discover'); } catch (_) { nextView = 'discover'; }
-    if (nextView !== lastView) {
-      originalGo.call(window, nextView);
-      lastView = nextView;
-    }
-  });
-})();
-</script>
 
-</body></html>
+/* export: share sheet first (blob downloads are unreliable inside a TWA) */
+Q('#exp').onclick=async()=>{
+  const file=new File([JSON.stringify(S,null,2)],'cadence-taste.json',{type:'application/json'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My Cadence taste'});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+};
+
+/* reset: in-app sheet instead of a browser confirm() dialog */
+Q('#rst').onclick=()=>{
+  openSheet('<h2 class="sh2">Reset Cadence?</h2><p class="shp">This wipes your taste, swipe history and Spotify link from this phone. It can\'t be undone.</p><div class="rowb"><button class="btn ghost" data-close>Keep my taste</button><button class="btn" id="rstGo" style="background:var(--like);color:#2a0a16">Reset everything</button></div>');
+  Q('#rstGo').onclick=()=>{['cadence.onboarded','cadence.coach','cadence.toured'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(STORE_KEY);location.href=location.pathname};
+};
+
+/* ---------- onboarding ---------- */
+let prevStep=0,heroT=0;
+const _rOb=rOb;
+rOb=function(){
+  const dir=obStep>=prevStep?'fwd':'bck';prevStep=obStep;
+  clearTimeout(heroT);
+  _rOb.apply(this,arguments);
+  const ob_=Q('#onboard'),el=Q('#obStep');
+  if(!ob_.classList.contains('open'))return;
+  ob_.dataset.s=obStep;
+  if(obStep===0)buildHero(el);
+  else if(obStep===2)buildLive(el);
+  else if(obStep===3)buildReveal(el);
+  el.classList.remove('fwd','bck');void el.offsetWidth;el.classList.add(dir);
+};
+
+function buildHero(el){
+  const pool=SEED.filter(s=>s.art),pick=[3,6,0].map(i=>pool[i%pool.length]).filter(Boolean),match=[94,71,88];
+  const card=(t,i)=>`<div class="c0" data-p="${i}" style="--h:${hue(t)}"><div class="c0f"><img src="${esc(t.art.replace('100x100bb','300x300bb'))}" alt="" draggable="false" onerror="this.remove()"><div class="c0s"><b>${match[i]}<sup>%</sup></b><small>taste match</small></div><div class="c0i"><h3>${esc(t.t)}</h3><p>${esc(t.a)}</p></div><div class="c0v like">${IC.heart}</div><div class="c0v nope">${IC.x}</div></div></div>`;
+  const words='Your next favorite song is one swipe away.'.split(' ').map((w,i)=>`<span style="--w:${i}">${w}</span>`).join(' ');
+  el.innerHTML=`<div class="hero0" aria-hidden="true"><div class="deck0">${pick.map(card).reverse().join('')}</div></div><h1 class="h0">${words}</h1><p class="sub">Four quick steps teach Cadence your taste. It stays on this phone unless you sign in.</p><div id="obSp"></div><div class="obnav col"><button class="btn big" data-a="next">Get started</button><div class="obx"><button class="lnk" data-a="sp">Connect Spotify</button><button class="lnk" data-a="skip">Skip setup</button></div></div>`;
+  if(RM||pick.length<3)return;
+  const wrap=el.querySelector('.hero0');let dir=1;
+  const loop=()=>{
+    if(!document.body.contains(wrap)||!Q('#onboard').classList.contains('open'))return;
+    if(!document.hidden){
+      const cards=[...wrap.querySelectorAll('.c0')],top=cards.find(c=>c.dataset.p==='0');
+      top.dataset.o=dir>0?'r':'l';
+      setTimeout(()=>{
+        cards.forEach(c=>{if(c!==top)c.dataset.p=String(+c.dataset.p-1)});
+        top.style.transition='none';top.dataset.o='';top.dataset.p='2';void top.offsetWidth;top.style.transition='';
+        dir*=-1;
+      },560);
+    }
+    heroT=setTimeout(loop,2500);
+  };
+  heroT=setTimeout(loop,1600);
+}
+
+function setLive(){const o=Q('#onboard');o.style.setProperty('--ev',ob.e);o.style.setProperty('--vh',Math.round(225+ob.v*130));o.style.setProperty('--ac',ob.a)}
+function buildLive(el){
+  const sub=el.querySelector('.sub');if(!sub)return;
+  const lq=document.createElement('div');lq.className='lq';lq.setAttribute('aria-hidden','true');
+  lq.innerHTML=Array.from({length:30},(_,i)=>`<i style="--d:${((i*37)%11)/11}"></i>`).join('');
+  sub.after(lq);setLive();
+}
+let lastNotch=-1;
+Q('#obStep').addEventListener('input',e=>{
+  if(!e.target.dataset||!e.target.dataset.k)return;
+  setLive();const n=Math.round(e.target.value/10);if(n!==lastNotch){lastNotch=n;tick(4)}
+});
+
+function countUp(sp){
+  const to=parseInt(sp.textContent,10);if(isNaN(to)||RM)return;
+  const t0=performance.now()+250;sp.textContent='0%';
+  const f=n=>{const k=Math.min(1,Math.max(0,(n-t0)/1000));sp.textContent=Math.round(to*(1-Math.pow(1-k,3)))+'%';if(k<1)requestAnimationFrame(f)};
+  requestAnimationFrame(f);
+}
+function burst(anchor){
+  if(RM)return;
+  const r=anchor.getBoundingClientRect(),box=document.createElement('div');
+  box.className='burst';box.style.left=(r.left+r.width/2)+'px';box.style.top=(r.top+r.height/2)+'px';
+  for(let i=0;i<18;i++){
+    const a=Math.random()*Math.PI*2,d=70+Math.random()*110,p=document.createElement('i');
+    p.style.cssText=`--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d+40}px;--r:${(Math.random()*540-270)|0}deg;--h:${[340,225,40,300][i%4]};animation-delay:${(Math.random()*80)|0}ms`;
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);setTimeout(()=>box.remove(),1300);tick([10,40,10,40,18]);
+}
+function buildReveal(el){
+  const r=el.querySelector('.reveal');
+  if(r&&!RM){
+    let i=0;
+    r.innerHTML=r.textContent.split(' ').map(w=>`<span class="wd">${[...w].map(c=>`<span class="lt" style="--i:${i++}">${esc(c)}</span>`).join('')}</span>`).join(' ');
+    setTimeout(()=>burst(r),420);
+  }
+  el.querySelectorAll('.bar span:last-child').forEach(countUp);
+}
+/* init() already rendered step 0 before this layer loaded: render it again through the patched rOb */
+if(Q('#onboard').classList.contains('open'))rOb();
+})();
+
+</script></body></html>
