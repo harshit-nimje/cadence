@@ -4,10 +4,21 @@
 <meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no"><meta name="application-name" content="Cadence"><meta name="apple-mobile-web-app-title" content="Cadence"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>html,body{background:#120e1d}</style>
+<meta name="description" content="Swipe songs and Cadence learns your taste — a daily pick, mood playlists and a Spotify link.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cadence">
+<meta property="og:title" content="Cadence — swipe to find your sound">
+<meta property="og:description" content="Swipe songs and Cadence learns your taste — a daily pick, mood playlists and a Spotify link.">
+<meta property="og:image" content="https://cadence.edgeone.dev/icons/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cadence — swipe to find your sound">
+<meta name="twitter:description" content="Swipe songs and Cadence learns your taste.">
+<meta name="twitter:image" content="https://cadence.edgeone.dev/icons/icon-512.png">
 <title>Cadence — swipe to find your sound</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap"></noscript>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#120e1d;--ink:#f6f1ea;--dim:#a99fbd;--line:rgba(255,255,255,.1);--glass:rgba(24,18,38,.55);--like:#ff5c8a;--nope:#7ba5ff;--mid:#ffc65a;--r:28px;--d:'Bricolage Grotesque',system-ui,sans-serif;--b:'Figtree',system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
@@ -497,11 +508,48 @@ nav button:active{scale:.9}
 .obnav,.obnav>*,.btn.big{flex-shrink:0}
 .step>*{flex-shrink:0}
 
+/* ================= v9: performance + polish ================= */
+/* native launch splash (paints on the first frame, then fades) */
+#splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;align-content:center;background:var(--bg);transition:opacity .36s var(--ease);will-change:opacity}
+#splash .sl{font:800 32px var(--d);letter-spacing:-.045em;color:var(--ink);display:flex;align-items:baseline}
+#splash .sl i{font-style:normal;color:var(--like)}
+#splash .sb2{margin-top:18px;width:66px;height:3px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
+#splash .sb2 i{display:block;height:100%;width:42%;border-radius:9px;background:var(--like);animation:spl 1.05s var(--ease) infinite}
+@keyframes spl{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+#splash.out{opacity:0;pointer-events:none}
+
+/* taste-confidence meter: bar with a caption underneath */
+#meter{display:flex;flex-direction:column;align-items:flex-end;gap:6px;line-height:1}
+#meter b{order:1}
+#meter #dpill{order:0}
+#mcap{order:2;display:flex;align-items:center;font:600 9.5px/1 var(--b);letter-spacing:.13em;text-transform:uppercase;color:var(--dim);opacity:.7;white-space:nowrap}
+#mcap #mlabel{color:var(--ink);opacity:.9}
+#mcap #mlabel:not(:empty):after{content:"·";margin:0 6px;color:var(--dim);opacity:.6;font-weight:700}
+
+/* calmer glow behind the taste score */
+.glow{inset:-6% -10% -2%;background:radial-gradient(closest-side,hsl(var(--sh) 92% 60%/calc(.05 + var(--sc)*.22)),transparent);filter:blur(26px);opacity:.9}
+
+/* performance: cheaper filters + compositor hints */
+#bg div{filter:blur(30px) saturate(1.35) brightness(.55);transform:scale(1.15);will-change:auto}
+#onboard>.orb{filter:blur(56px);opacity:.34}
+#deck .card{transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+#navInd,nav{will-change:transform}
+header:before{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#sheet .sp{-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+#sheet .sb{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.view{overflow-anchor:none}
+@media(prefers-reduced-motion:reduce){
+  #bg div{transition:none}
+  .view.on .wrap>*,.view.on .list>*{animation:none!important}
+  #splash .sb2 i{animation:none;width:100%}
+}
+
 </style></head><body>
+<div id="splash"><div class="sl">cadence<i>.</i></div><div class="sb2"><i></i></div></div>
 <div id="bg"></div>
 <header><div class="logo">cadence<i>.</i></div>
-<nav id="nav"><button data-v="discover" class="on">Swipe</button><button data-v="foryou">For you</button><button data-v="game">Game</button><button data-v="moods">Moods</button><button data-v="taste">Taste</button></nav>
-<div id="meter"><span id="mlabel"></span><b><i id="mbar"></i></b></div></header>
+<nav id="nav"><button data-v="discover" class="on">Swipe</button><button data-v="foryou">For you</button><button data-v="moods">Moods</button><button data-v="taste">Taste</button><button data-v="game">Game</button></nav>
+<div id="meter"><b><i id="mbar"></i></b><small id="mcap"><span id="mlabel"></span>Taste confidence</small></div></header>
 <main>
 <section class="view on" id="v-discover"><aside class="side" id="insL"></aside><div class="col"><div id="strip"></div><div class="stage"><div class="stack" id="deck"></div></div><div class="dock"><button class="act undo" id="bUndo" aria-label="Undo"></button><button class="act nope" id="bNope" aria-label="Dislike"></button><button class="act like" id="bLike" aria-label="Like"></button><button class="act mid" id="bSkip" aria-label="Skip"></button><button class="act shuf" id="bShuf" aria-label="Shuffle deck"></button></div><div class="keys">← dislike · ↓ skip · → like · space play · Z undo · S shuffle</div></div><aside class="side" id="insR"></aside></section>
 <section class="view" id="v-foryou"><div class="wrap"><h1>For you</h1><p class="sub">Ranked live against everything you've swiped. Like more, and this sharpens.</p><div class="list" id="forList"></div></div></section>
@@ -520,7 +568,7 @@ nav button:active{scale:.9}
 <li><b>Accept every permission</b><p>On Spotify’s screen, tap Agree. Declining any of these breaks a feature:</p><ul class="perm"><li><code>user-top-read</code>Reads your top artists and tracks to seed your taste.</li><li><code>user-library-modify</code>Saves songs to your Liked Songs.</li><li><code>playlist-read-private</code>Reads your private playlists for import.</li><li><code>playlist-read-collaborative</code>Reads shared playlists for import.</li><li><code>playlist-modify-private</code>Creates private playlists from Moods.</li></ul></li>
 </ol>
 <div class="fixes"><details><summary>Something went wrong?</summary><p><b style="color:var(--ink)">“Forbidden” or 403:</b> your account is not under User Management, the app owner is not on Premium, or you connected before a permission was added. Fix that, tap Disconnect, then Connect and accept everything.</p><p><b style="color:var(--ink)">INVALID_CLIENT or redirect error:</b> the Redirect URI in the dashboard does not match the one above exactly.</p><p><b style="color:var(--ink)">Playlist import fails:</b> Spotify only returns tracks for playlists you own or collaborate on. Copy the playlist into your own first.</p><p><b style="color:var(--ink)">Opened as a file or localhost:</b> serve the folder with <code>python3 -m http.server 8000</code> and open <code>http://127.0.0.1:8000/</code>.</p></details></div></div>
-<div class="rowb"><button class="btn ghost" id="tourBtn">Replay tutorial</button><button class="btn ghost" id="exp">Export my taste</button><button class="btn ghost" id="rst">Reset everything</button></div></div></section>
+<div class="rowb"><button class="btn ghost" id="obBtn">Show onboarding</button><button class="btn ghost" id="tourBtn">Replay tutorial</button><button class="btn ghost" id="exp">Export my taste</button><button class="btn ghost" id="rst">Reset everything</button></div></div></section>
 </main>
 <div id="onboard"><i class="orb a"></i><i class="orb b"></i><i class="orb c"></i><div class="ob"><div class="dots" id="dots"></div><div class="step" id="obStep"></div></div></div>
 <div id="sheet"><div class="sb"></div><div class="sp"><div class="grabw"><i class="grab"></i></div><div class="sc"></div></div></div><div id="tour" role="dialog" aria-label="Quick tour"><div id="tourHole"></div><div id="tourFinger"></div><div id="tourCap"></div></div><div id="toast"></div><audio id="audio" preload="none"></audio>
@@ -537,7 +585,7 @@ const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const art600 = (u) => u ? u.replace(/\/\d+x\d+bb\.jpg$/, '/600x600bb.jpg') : '';
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
 const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -936,32 +984,55 @@ const SP = {
   async begin() {
     if (!this.available()) { toast('Spotify needs the page served over http(s) — see Settings.', 'err'); return; }
     if (!S.sp.clientId) { openModal('settings'); toast('Add your Spotify Client ID first.', 'err'); return; }
-    const v = this.rand(64); localStorage.setItem('cadence.pkce', v);
+    const v = this.rand(64), st = this.rand(24);
+    try { localStorage.setItem('cadence.pkce', v); localStorage.setItem('cadence.state', st); } catch (e) {}
     const ch = await this.challenge(v);
     const url = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
       client_id: S.sp.clientId, response_type: 'code', redirect_uri: this.redirect(),
-      code_challenge_method: 'S256', code_challenge: ch, scope: SCOPES, show_dialog: 'true'
+      code_challenge_method: 'S256', code_challenge: ch, scope: SCOPES, show_dialog: 'false', state: st
     });
     location.href = url;
   },
   async handleReturn() {
     const p = new URLSearchParams(location.search);
-    const code = p.get('code'), err = p.get('error');
-    if (err) { toast('Spotify: ' + err, 'err'); history.replaceState({}, '', location.pathname); return; }
-    if (!code) return;
+    const code = p.get('code'), err = p.get('error'), st = p.get('state');
+    let wantState = null, verifier = null;
+    try {
+      wantState = localStorage.getItem('cadence.state');
+      verifier = localStorage.getItem('cadence.pkce');
+    } catch (e) {}
+    if (!code && !err) return;
     history.replaceState({}, '', location.pathname);
+    // Require a one-time matching state for every Spotify callback. Missing
+    // stored state must fail closed rather than bypassing the comparison.
+    if (!wantState || !st || st !== wantState || (code && !verifier)) {
+      try { localStorage.removeItem('cadence.state'); localStorage.removeItem('cadence.pkce'); } catch (e) {}
+      toast('Spotify sign-in could not be verified. Please try again.', 'err');
+      return;
+    }
+    try { localStorage.removeItem('cadence.state'); } catch (e) {}
+    if (err) {
+      try { localStorage.removeItem('cadence.pkce'); } catch (e) {}
+      toast('Spotify: ' + err, 'err');
+      return;
+    }
     try {
       const body = new URLSearchParams({
         client_id: S.sp.clientId, grant_type: 'authorization_code', code,
-        redirect_uri: this.redirect(), code_verifier: localStorage.getItem('cadence.pkce') || ''
+        redirect_uri: this.redirect(), code_verifier: verifier
       });
       const r = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error_description || j.error || 'token failed');
       S.sp.token = j.access_token; S.sp.refresh = j.refresh_token; S.sp.expires = Date.now() + (j.expires_in - 60) * 1000;
+      S.sp.needsReconnect = false;
+      try { localStorage.removeItem('cadence.pkce'); localStorage.removeItem('cadence.state'); } catch (e) {}
       save(); toast('Spotify connected — seeding your taste…', 'ok');
       await seedFromSpotify();
-    } catch (e) { toast('Spotify connect failed: ' + e.message, 'err'); }
+    } catch (e) {
+      try { localStorage.removeItem('cadence.pkce'); localStorage.removeItem('cadence.state'); } catch (_) {}
+      toast('Spotify connect failed: ' + e.message, 'err');
+    }
   },
   async refreshToken() {
     if (!S.sp.refresh) return false;
@@ -982,7 +1053,7 @@ const SP = {
       let msg = m;
       if (r.status === 403) msg = /scope/i.test(m) ? 'Spotify permission missing. Disconnect and reconnect Spotify in Taste, then accept every permission.' : /not registered|allowlist|user management/i.test(m) ? 'Your Spotify account is not added to this app. Add your email under User Management in the Spotify dashboard.' : 'Spotify refused (403). Check that the app owner has Premium and your account is under User Management in the Spotify dashboard.';
       else if (r.status === 429) msg = 'Spotify is rate limiting. Try again in a minute.';
-      const err = new Error(msg); err.status = r.status; throw err;
+      const err = new Error(msg); err.status = r.status; err.retryAfter = Number(r.headers.get('Retry-After')) || 0; throw err;
     }
     if (r.status === 204) return null;
     const txt = await r.text();
@@ -997,7 +1068,8 @@ async function seedFromSpotify() {
   const btn = $('#spotifyBtn');
   try {
     const [artists, tracks] = await Promise.all([
-      SP.api('/me/top/artists?limit=25&time_range=medium_term'),      SP.api('/me/top/tracks?limit=30&time_range=medium_term')
+      SP.api('/me/top/artists?limit=25&time_range=medium_term'),
+      SP.api('/me/top/tracks?limit=30&time_range=medium_term')
     ]);
     const names = (artists.items || []).map(a => a.name);
     const artistIds = (artists.items || []).map(a => a.id);
@@ -1098,8 +1170,8 @@ document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagNam
 $('#savePl').onclick=()=>{const l=buildMood(curMood);if(l.length)savePlaylist(MOODS[curMood].name,l)};
 $('#spSave').onclick=()=>{S.sp.clientId=$('#spClient').value.trim();S.sp.redirect=$('#spRedirect').value.trim()||SP.redirect();save();toast('Saved','ok')};
 $('#spotifyBtn').onclick=()=>SP.begin();$('#spOff').onclick=()=>{SP.disconnect();renderSpStatus();toast('Disconnected')};
-$('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));a.download='cadence-taste.json';a.click()};
-$('#rst').onclick=()=>{if(confirm('Wipe your taste, history and Spotify link?')){localStorage.removeItem(STORE_KEY);localStorage.removeItem('cadence.onboarded');location.href=location.pathname}};
+$('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportSnapshot(),null,2)],{type:'application/json'}));a.download='cadence-taste.json';a.click()};
+$('#rst').onclick=()=>{if(confirm('Wipe your taste, history and Spotify link?')){['cadence.onboarded','cadence.sp','cadence.pkce','cadence.state','cadence.afterSp','cadence.coach','cadence.toured'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});localStorage.removeItem(STORE_KEY);location.href=location.pathname}};
 async function init(){addToPool(SEED.map(s=>Object.assign({},s,{f:inferFeatures(s)})));ensureDeck();renderDeck();hud();
 if(S.sp.clientId)$('#spClient').value=S.sp.clientId;if(/\/\/localhost/.test(S.sp.redirect||''))S.sp.redirect='';if(!S.sp.redirect)S.sp.redirect=SP.redirect();$('#spRedirect').value=S.sp.redirect;renderSpStatus();
 if(location.search.includes('code=')||location.search.includes('error=')){localStorage.setItem('cadence.onboarded','1');await SP.handleReturn();if(localStorage.getItem('cadence.afterSp')){localStorage.removeItem('cadence.afterSp');startOb(3)}}
@@ -1171,7 +1243,7 @@ async function sbInit(){if(!window.supabase)return;sb=window.supabase.createClie
 $('#spStat').closest('.panel').insertAdjacentHTML('beforebegin','<div class="panel"><h3>Account</h3><div id="acBox"></div></div>');
 $('#acBox').addEventListener('click',async e=>{const a=e.target.dataset.ac;if(a==='in'||a==='up')sbAuth(a);else if(a==='out')await sb.auth.signOut();else if(a==='sync'){await sbPull();toast('Synced','ok')}});
 sb.auth.onAuthStateChange((ev,s)=>{sbUser=s?s.user:null;rAcct();rInsights();if(ev==='SIGNED_IN'||ev==='INITIAL_SESSION'){if(sbUser)sbPull()}});rAcct()}
-sbInit();
+if(window.supabase)sbInit();else addEventListener('load',function(){if(window.supabase)sbInit()});
 
 /* ---- v3: playing cards, deal, riffle shuffle, guest/sign-in ---- */
 const hasWA=!!document.documentElement.animate,vib=p=>navigator.vibrate&&navigator.vibrate(p);
@@ -1233,7 +1305,7 @@ if(dx>110||(vx>.6&&dx>35))return vote('like');if(dx<-110||(vx<-.6&&dx<-35))retur
 c.style.transition='transform .65s cubic-bezier(.34,1.45,.64,1)';c.style.transform='';dx=dy=0;show();if(mv<8)playTrack(t)}};
 flyOut=function(c,v){const k={like:[1,0],nope:[-1,0],skip:[0,1]}[v];c.classList.remove('dragging');c.style.transition='transform .45s cubic-bezier(.25,.8,.3,1),opacity .3s .08s';c.style.setProperty({like:'--ol',nope:'--on',skip:'--om'}[v],1);c.style.transform=`translate(${k[0]*(innerWidth+240)}px,${k[1]*innerHeight*.5}px) rotate(${k[0]*16}deg)`;c.style.opacity=0;$('#deck').style.setProperty('--p',1)};
 /* page transitions + sliding nav pill */
-const ORDER=['discover','foryou','game','moods','taste'],ind=document.createElement('i');ind.id='navInd';$('#nav').prepend(ind);
+const ORDER=['discover','foryou','moods','taste','game'],ind=document.createElement('i');ind.id='navInd';$('#nav').prepend(ind);
 let ix=0,iw=0,ih=0,ir=0,first=true;
 function moveInd(snap){cancelAnimationFrame(ir);const f=()=>{const b=$('#nav button.on');if(!b)return;const tx=b.offsetLeft,tw=b.offsetWidth,k=(first||snap===2)?1:.2;first=false;ix+=(tx-ix)*k;iw+=(tw-iw)*k;ind.style.transform=`translate(${ix}px,${b.offsetTop}px)`;ind.style.width=iw+'px';ind.style.height=b.offsetHeight+'px';if(Math.abs(tx-ix)>.4||Math.abs(tw-iw)>.4)ir=requestAnimationFrame(f);else{ix=tx;iw=tw}};f()}
 if(window.ResizeObserver)new ResizeObserver(()=>moveInd(2)).observe($('#nav'));
@@ -1280,7 +1352,7 @@ if(!old||old===nu||!hasWA){$$('.view').forEach(e=>e.classList.toggle('on',e===nu
 const dir=ni>pi?1:-1;RENDER[v]();nu.scrollTop=0;nu.style.setProperty('--sy',0);
 $$('.view').forEach(e=>{if(e!==nu&&e!==old)e.classList.remove('on')});old.classList.add('leaving');nu.classList.add('on');
 old.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-dir*30}px) scale(.985)`}],{duration:240,easing:'cubic-bezier(.4,0,.8,.3)',fill:'forwards'}).onfinish=function(){if(old.id!=='v-'+view)old.classList.remove('on');old.classList.remove('leaving');this.cancel()};
-nu.animate([{opacity:0,transform:`translateX(${dir*40}px)`,filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],{duration:600,delay:110,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'});
+nu.animate([{opacity:0,transform:`translateX(${dir*34}px)`},{opacity:1,transform:'none'}],{duration:500,delay:70,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'});
 requestAnimationFrame(()=>moveInd())};
 $$('.view').forEach(v=>{let r=0;v.addEventListener('scroll',()=>{if(r)return;r=requestAnimationFrame(()=>{r=0;v.style.setProperty('--sy',v.scrollTop)})},{passive:true})});
 /* ---- expanding rows ---- */
@@ -1325,13 +1397,13 @@ ${SP.connected()?`<label>Playlist link</label><input id="impUrl" placeholder="op
 async function spFetchUI(){const u=$('#impUrl').value.trim();if(!u)return toast('Paste a playlist link','err');$('#impMsg').textContent='Reading playlist…';try{const l=await fetchSpotifyPlaylist(u);$('#impTxt').value=l.map(x=>x.q).join('\n');$('#impMsg').textContent=l.length+' tracks found. Press import.'}catch(e){$('#impMsg').textContent='Spotify refused: '+e.message+'. Paste the tracks or an Exportify CSV instead.'}}
 let importing=false;
 async function runImportUI(){if(importing)return;const list=parseList($('#impTxt').value||'').slice(0,80);if(!list.length)return toast('Nothing to import','err');importing=true;const bar=$('#impBar'),msg=$('#impMsg'),btn=$('#impGo');btn.disabled=true;
-if(!S.imp)S.imp=newProf();const before=impWeight();let done=0,ok=0;const have=new Set(S.imp.tracks.map(t=>String(t.id)));
-const work=async it=>{try{const r=await searchItunes(it.q,3);const t=r[0];if(t&&!have.has(String(t.id))){have.add(String(t.id));impLearn(t);addToPool([t]);if(!S.seen.includes(t.id))S.seen.push(t.id);S.imp.tracks.unshift(summarize(t));ok++}}catch(e){}done++;bar.style.width=done/list.length*100+'%';msg.textContent=`Matched ${ok} of ${done}…`};
+if(!S.imp)S.imp=newProf();const before=impWeight();let done=0,ok=0,nf=0,failed=0;const have=new Set(S.imp.tracks.map(t=>String(t.id)));
+const work=async it=>{try{const r=await searchItunes(it.q,3);const t=r[0];if(t&&!have.has(String(t.id))){have.add(String(t.id));impLearn(t);addToPool([t]);if(!S.seen.includes(t.id))S.seen.push(t.id);S.imp.tracks.unshift(summarize(t));ok++}else nf++}catch(e){failed++}done++;bar.style.width=done/list.length*100+'%';msg.textContent=`Matched ${ok} of ${done}…`+(failed?` · ${failed} failed`:``)};
 const q=list.slice();await Promise.all(Array.from({length:5},async()=>{while(q.length)await work(q.shift())}));
 S.imp.tracks=S.imp.tracks.slice(0,80);S.imp.at=Date.now();if(!S.imp.n){S.imp=null}save();importing=false;
-if(!ok){btn.disabled=false;msg.textContent='No tracks matched. Check the names and try again.';return}
+if(!ok){btn.disabled=false;msg.textContent=failed?`Couldn't reach the music lookup (${failed} error${failed===1?'':'s'}). Check your connection and try again.`:'No tracks matched. Check the names and try again.';return}
 const w=impWeight();msg.textContent='';const top=Object.entries(S.imp.genre).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
-$('#sheet .sc').innerHTML=`<h2 class="sh2">Taste re-scored</h2><p class="shp">${ok} tracks matched${list.length-ok?`, ${list.length-ok} not found`:''}. Top genres: ${esc(top.join(', ')||'mixed')}.</p><div class="split"><i class="so" style="width:${Math.round((1-w)*100)}%"></i><i class="ss" style="width:${Math.round(w*100)}%"></i></div><div class="legend"><span><u class="d o"></u>Organic <b>${Math.round((1-w)*100)}%</b><small>${nSw()} swipes</small></span><span><u class="d s"></u>Spotify <b>${Math.round(w*100)}%</b><small>${S.imp.n} tracks</small></span></div><p class="note">Was ${Math.round((1-before)*100)}% organic before this import.</p><div class="rowb" style="margin-top:18px"><button class="btn" data-close>Back to swiping</button></div>`;
+$('#sheet .sc').innerHTML=`<h2 class="sh2">Taste re-scored</h2><p class="shp">${ok} tracks matched${(list.length-ok-failed)>0?`, ${list.length-ok-failed} not found`:''}${failed?` · ${failed} couldn't be checked`:''}. Top genres: ${esc(top.join(', ')||'mixed')}.</p><div class="split"><i class="so" style="width:${Math.round((1-w)*100)}%"></i><i class="ss" style="width:${Math.round(w*100)}%"></i></div><div class="legend"><span><u class="d o"></u>Organic <b>${Math.round((1-w)*100)}%</b><small>${nSw()} swipes</small></span><span><u class="d s"></u>Spotify <b>${Math.round(w*100)}%</b><small>${S.imp.n} tracks</small></span></div><p class="note">Was ${Math.round((1-before)*100)}% organic before this import.</p><div class="rowb" style="margin-top:18px"><button class="btn" data-close>Back to swiping</button></div>`;
 const terms=Object.values(S.imp.artist).sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.name);seedPool(terms).then(()=>{DECK=[];ensureDeck();renderDeck();hud();if(view==='taste')rTaste()});DECK=[];ensureDeck();renderDeck();hud();if(view==='taste')rTaste();vib2([10,30,10])}
 /* ---- taste page: sources + two-tone genres ---- */
 function genreHTML(){const w=impWeight(),I=S.imp,oM=maxAbs(S.genre),iM=I?maxAbs(I.genre):1,set=new Set([...Object.keys(S.genre),...(I?Object.keys(I.genre):[])]);
@@ -1397,7 +1469,7 @@ const STEPS=[
 {t:'Taste match',p:'How well the song fits you, from 0 to 100. It sharpens as you swipe.',sel:'#deck .card:last-child .score',card:1},
 {t:'Prefer buttons?',p:'Left to right: undo, dislike, like, mid, shuffle. Shuffle deals a fresh set of songs.',sel:'.dock'},
 {t:'Daily pick',p:'The flame is one song a day, chosen for you. Open it, then like or save to keep your streak. Once you have dealt with it, it tucks away into the corner until tomorrow.',sel:'#dpill'},
-{t:'Pages',p:'Swipe is home. For you ranks songs for you, Game is a mystery clip, Moods filter by vibe, Taste shows your profile and Spotify setup.',sel:'#nav'},
+{t:'Pages',p:'Swipe is home. For you ranks songs for you, Moods filter by vibe, Taste shows your profile, and Game — far right — is a daily mystery clip.',sel:'#nav'},
 {t:'You’re set',p:'Swipe a few songs and your deck starts to fit you. You can replay this from Taste.',last:1}
 ];
 let i=0,timers=[],active=false;
@@ -1526,7 +1598,7 @@ setPillMode();
 /* ================= v6 JS: real waveform + smooth playback progress ================= */
 (function(){
   var cssEsc=function(s){return (window.CSS&&CSS.escape)?CSS.escape(s):String(s).replace(/["\\]/g,'\\$&')};
-  var W=new Map(),ac=null,BARS=60;
+  var W=new Map(),ac=null,BARS=48;
   function actx(){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;ac=C?new C():null}if(ac&&ac.state==='suspended')ac.resume().catch(function(){});return ac}catch(e){return null}}
   /* loudness envelope: per-bucket RMS on a dB scale, with a little peak for definition.
      Peak-per-bucket alone pins every bar at full height on limited modern masters. */
@@ -1664,7 +1736,7 @@ setPillMode();
   measureNav();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measureNav);
   addEventListener('resize',measureNav);
-  setTimeout(hydrate,500);
+  setTimeout(hydrate,500);try{window.__hydrateWave=hydrate}catch(e){}
   setTimeout(function(){if(nowId!=null)load(T.get(String(nowId)))},650);
 })();
 
@@ -1675,8 +1747,11 @@ setPillMode();
 const Q=s=>document.querySelector(s),root=document.documentElement;
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const STANDALONE=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true||document.referrer.startsWith('android-app://');
-const APP=STANDALONE||matchMedia('(pointer: coarse)').matches;
-if(APP)root.dataset.app='1';
+const IS_TOUCH=matchMedia('(pointer: coarse)').matches;
+const APP=STANDALONE||IS_TOUCH;   /* touch feel applies to phones; installed-only chrome handling below */
+window.__IS_INSTALLED=STANDALONE;
+if(STANDALONE)root.dataset.app='1';
+if(IS_TOUCH)root.dataset.touch='1';
 const tick=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 
 /* service worker: offline shell */
@@ -1741,7 +1816,7 @@ if(STANDALONE){
 
 /* export: share sheet first (blob downloads are unreliable inside a TWA) */
 Q('#exp').onclick=async()=>{
-  const file=new File([JSON.stringify(S,null,2)],'cadence-taste.json',{type:'application/json'});
+  const file=new File([JSON.stringify(exportSnapshot(),null,2)],'cadence-taste.json',{type:'application/json'});
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'My Cadence taste'});return}}catch(e){if(e&&e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 };
@@ -1749,7 +1824,7 @@ Q('#exp').onclick=async()=>{
 /* reset: in-app sheet instead of a browser confirm() dialog */
 Q('#rst').onclick=()=>{
   openSheet('<h2 class="sh2">Reset Cadence?</h2><p class="shp">This wipes your taste, swipe history and Spotify link from this phone. It can\'t be undone.</p><div class="rowb"><button class="btn ghost" data-close>Keep my taste</button><button class="btn" id="rstGo" style="background:var(--like);color:#2a0a16">Reset everything</button></div>');
-  Q('#rstGo').onclick=()=>{['cadence.onboarded','cadence.coach','cadence.toured'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(STORE_KEY);location.href=location.pathname};
+  Q('#rstGo').onclick=()=>{['cadence.onboarded','cadence.coach','cadence.toured','cadence.sp','cadence.pkce','cadence.state','cadence.afterSp'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});try{localStorage.removeItem(STORE_KEY)}catch(e){};location.href=location.pathname};
 };
 
 /* ---------- onboarding ---------- */
@@ -1834,4 +1909,214 @@ function buildReveal(el){
 if(Q('#onboard').classList.contains('open'))rOb();
 })();
 
-</script></body></html>
+</script>
+<script>
+/* ================= v9: performance, persistence + polish ================= */
+(function(){
+'use strict';
+const Q=s=>document.querySelector(s);
+/* installed (standalone/TWA) vs an ordinary phone browser: only installed mode hides scaffolding */
+const IS_INSTALLED=(typeof window.__IS_INSTALLED==='boolean')?window.__IS_INSTALLED:(document.documentElement.dataset.app==='1');
+/* credential-free snapshot for export / share (never leak tokens) */
+window.exportSnapshot=function(){try{const o=JSON.parse(JSON.stringify(S));delete o.sp;return o}catch(e){return {}}};
+
+/* ---- launch splash: fade out as soon as the app is interactive ---- */
+(function(){
+  const sp=Q('#splash'); if(!sp)return;
+  let gone=false;
+  const kill=()=>{if(gone)return;gone=true;sp.classList.add('out');setTimeout(()=>{try{sp.remove()}catch(e){}},420)};
+  setTimeout(kill,640);
+  addEventListener('load',()=>setTimeout(kill,60));
+})();
+
+/* ---- Spotify: durable link that survives app kill ---- */
+(function(){
+  const MIRROR='cadence.sp';
+  function persist(){
+    try{localStorage.setItem(MIRROR,JSON.stringify({clientId:S.sp.clientId,redirect:S.sp.redirect,refresh:S.sp.refresh,user:S.sp.user,at:Date.now()}))}catch(e){}
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}   /* immediate, not debounced */
+  }
+  (function restore(){
+    try{
+      const m=JSON.parse(localStorage.getItem(MIRROR)||'null'); if(!m)return;
+      if(!S.sp.refresh&&m.refresh)S.sp.refresh=m.refresh;
+      if(!S.sp.clientId&&m.clientId)S.sp.clientId=m.clientId;
+      if(!S.sp.redirect&&m.redirect)S.sp.redirect=m.redirect;
+      if(!S.sp.user&&m.user)S.sp.user=m.user;
+    }catch(e){}
+  })();
+  function clearCreds(){
+    S.sp.token=null;S.sp.refresh=null;S.sp.expires=0;S.sp.user=null;S.spotifySeeded=false;
+    try{localStorage.removeItem(MIRROR)}catch(e){}
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}
+  }
+  /* a stored refresh token counts as connected, even when the access token has lapsed */
+  SP.connected=function(){return !!((S.sp.token&&Date.now()<S.sp.expires)||S.sp.refresh)};
+  let refreshP=null;   /* single-flight: one refresh at a time, so resume/API races can't clobber each other */
+  SP.refreshToken=function(){
+    if(refreshP)return refreshP;
+    if(!S.sp.refresh)return Promise.resolve(false);
+    refreshP=(async function(){
+      try{
+        const body=new URLSearchParams({client_id:S.sp.clientId,grant_type:'refresh_token',refresh_token:S.sp.refresh});
+        const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        let j={}; try{j=await r.json()}catch(e){}
+        if(!r.ok){
+          /* invalid_grant = revoked, or past Spotify's six-month refresh-token lifetime */
+          if(j.error==='invalid_grant'||r.status===400||r.status===401){
+            clearCreds(); S.sp.needsReconnect=true;
+            try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}
+            try{renderSpStatus()}catch(e){}
+            try{toast('Spotify session expired — reconnect in Taste.','err')}catch(e){}
+            return false;
+          }
+          throw new Error(j.error||'refresh failed');
+        }
+        S.sp.token=j.access_token;
+        if(j.refresh_token)S.sp.refresh=j.refresh_token;   /* Spotify may rotate it */
+        S.sp.expires=Date.now()+(j.expires_in-60)*1000;
+        S.sp.needsReconnect=false;
+        persist(); return true;
+      }catch(e){return false}
+      finally{refreshP=null}
+    })();
+    return refreshP;
+  };
+  const _api=SP.api.bind(SP);
+  SP.api=async function(path,opts){
+    if(!S.sp.token||Date.now()>=S.sp.expires){const ok=await this.refreshToken();if(!ok)throw new Error('Not connected to Spotify. Reconnect in Taste.')}
+    for(let attempt=0;attempt<3;attempt++){
+      try{ return await _api(path,opts); }
+      catch(e){
+        if(e&&e.status===429&&attempt<2){   /* respect Retry-After, bounded retries */
+          const ra=Number((e&&e.retryAfter)||0);
+          await new Promise(function(res){setTimeout(res,Math.min(8000,ra>0?ra*1000:1200*(attempt+1)))});
+          continue;
+        }
+        throw e;
+      }
+    }
+  };
+  const _handle=SP.handleReturn.bind(SP);
+  SP.handleReturn=async function(){await _handle.apply(this,arguments);if(S.sp.refresh)persist()};
+  const _disc=SP.disconnect.bind(SP);
+  SP.disconnect=function(){_disc.apply(this,arguments);S.sp.needsReconnect=false;try{localStorage.removeItem(MIRROR)}catch(e){}try{localStorage.setItem(STORE_KEY,JSON.stringify(S))}catch(e){}};
+  const _begin=SP.begin.bind(SP);
+  SP.begin=async function(){const r=await _begin.apply(this,arguments);if(S.sp.clientId)persist();return r};
+  let busy=false;
+  async function kick(){
+    if(busy||!S.sp.refresh)return;
+    if(S.sp.token&&Date.now()<S.sp.expires)return;
+    busy=true;const ok=await SP.refreshToken();busy=false;
+    if(ok){try{renderSpStatus()}catch(e){}try{rInsights()}catch(e){}}
+  }
+  kick();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)kick()});
+  addEventListener('focus',kick);
+  addEventListener('pageshow',e=>{if(e.persisted)kick()});
+  /* Ship your own Spotify app to drop the setup screens entirely.
+     Set window.CADENCE_SPOTIFY_CLIENT_ID = '<your client id>' in a script that runs     before this one (or paste it below) and users just tap Connect. */
+  const SHIP_ID=(typeof window.CADENCE_SPOTIFY_CLIENT_ID==='string'&&window.CADENCE_SPOTIFY_CLIENT_ID)||'';
+  window.__shipSpotifyId=SHIP_ID;
+  if(SHIP_ID&&!S.sp.clientId){S.sp.clientId=SHIP_ID}
+  const _rs=renderSpStatus;
+  renderSpStatus=function(){
+    _rs.apply(this,arguments);
+    const st=Q('#spStat'), btn=Q('#spotifyBtn');
+    if(!SP.connected()&&S.sp.needsReconnect){
+      if(st)st.textContent='Spotify session expired. Tap Reconnect to link again.';
+      if(btn)btn.textContent='Reconnect';
+    }else if(IS_INSTALLED&&!SP.connected()){
+      if(st)st.textContent='Connect Spotify to save songs and seed your taste.';
+    }
+  };
+})();
+
+/* ---- cards: reuse DOM nodes so cover art never re-decodes (kills swipe flicker) ---- */
+(function(){
+  const CAP=16,cache=new Map(),PRE=new Set();
+  function preload(list){
+    if(!list)return;
+    list.slice(0,7).forEach(t=>{
+      if(!t||!t.art)return;
+      let u; try{u=artOf(t)}catch(e){return}
+      if(!u||PRE.has(u))return; PRE.add(u);
+      const im=new Image(); im.decoding='async';
+      try{im.src=u}catch(e){return}
+      if(im.decode)im.decode().catch(()=>{});
+    });
+  }
+  window.__preloadArt=preload;
+  function sigOf(t){try{return [t.t,t.a,t.art||'',t.g||'',t.y||'',reasonFor(t)].join(String.fromCharCode(1))}catch(e){return String(t.id)}}
+  function node(t){
+    const id=String(t.id); let n=cache.get(id); const sig=sigOf(t);
+    if(n&&n.dataset.sig!==sig){cache.delete(id);n=null}   /* metadata changed since it was cached: rebuild */
+    if(!n){
+      const tmp=document.createElement('div'); tmp.innerHTML=cardHTML(t); n=tmp.firstElementChild;
+      if(!n)return null;
+      n.dataset.sig=sig;
+      cache.set(id,n);
+      if(cache.size>CAP){for(const k of cache.keys()){if(k!==id){cache.delete(k);break}}}
+    }else{
+      n.style.transition='none'; n.style.transform=''; n.style.opacity=''; n.classList.remove('dragging');
+      ['--ol','--on','--om'].forEach(k=>n.style.removeProperty(k));
+      try{
+        const m=matchOf(t);
+        n.style.setProperty('--sc',clamp(m/100)); n.style.setProperty('--sh',hueOf(m));
+        const b=n.querySelector('.score b'); if(b)b.innerHTML=m+'<sup>%</sup>';
+      }catch(e){}
+      try{reg(t)}catch(e){}
+    }
+    return n;
+  }
+  const _rd=renderDeck;
+  renderDeck=function(d){
+    const el=Q('#deck');
+    if(!DECK.length){_rd.apply(this,arguments);return}
+    el.style.setProperty('--p',0);
+    const dl=d===true||d==='pile'||(d===undefined&&firstDeal); firstDeal=false;
+    const frag=document.createDocumentFragment();
+    DECK.slice(0,3).reverse().forEach(t=>{const n=node(t);if(n)frag.appendChild(n)});
+    el.innerHTML=''; el.appendChild(frag);
+    const top=el.lastElementChild; if(top)drag(top,DECK[0]);
+    preload(DECK); setBg(DECK[0]); sync();
+    if(dl){try{dealAnim()}catch(e){}}
+    else{
+      const cs=el.children;
+      if(hasWA&&cs.length===3)cs[0].animate([{opacity:0}],{duration:380,easing:'ease-out',fill:'backwards'});
+      if(auto&&view==='discover')playTrack(DECK[0],true);
+    }
+    if(window.__hydrateWave){try{window.__hydrateWave()}catch(e){}}
+  };
+  try{const _ed=ensureDeck;ensureDeck=function(){const r=_ed.apply(this,arguments);preload(DECK);return r}}catch(e){}
+  preload(DECK);
+})();
+
+/* ---- settings: replay the onboarding, and strip developer scaffolding in-app ---- */
+(function(){
+  const b=Q('#obBtn');
+  if(b)b.onclick=()=>{
+    try{picked.clear()}catch(e){}
+    try{ob={e:.5,v:.5,a:.5,era:null}}catch(e){}
+    try{obBase=JSON.stringify(S.genre)}catch(e){}
+    try{startOb(0)}catch(e){toast('Could not open onboarding','err')}
+  };
+  if(!IS_INSTALLED)return;
+  const ship=window.__shipSpotifyId||'';
+  try{const fx=Q('.fixes');if(fx)fx.remove()}catch(e){}
+  try{
+    const sps=Q('.sps');
+    if(sps){
+      const items=[...sps.children];
+      /* with a shipped Client ID there is nothing to set up; otherwise keep only
+         the paste-and-connect + permissions steps */
+      items.forEach((li,i)=>{if(ship||i<4)li.remove()});
+    }
+  }catch(e){}
+  try{const ci=Q('#spClient');if(ci&&ship)ci.remove()}catch(e){}
+  try{const cs=Q('#spSave');if(cs&&ship)cs.remove()}catch(e){}
+  try{document.querySelectorAll('#spPanel a.btn[target="_blank"]').forEach(a=>a.remove())}catch(e){}
+})();
+})();
+</script>
+</body></html>

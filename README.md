@@ -164,7 +164,9 @@ The current web implementation intentionally keeps its core recommendation logic
 │   ├── icon-512.png
 │   └── maskable-512.png
 ├── .well-known/
-│   └── assetlinks.json        # Android Digital Asset Links for the TWA package
+│   └── assetlinks.json        # Real package + signing fingerprint; preserve this file
+├── TWA-SETUP.md               # v0.3 web/TWA deployment notes
+├── assetlinks.example.json    # Template only; never deployed as the live statement
 └── .github/workflows/
     ├── validate.yml           # Static/PWA configuration checks
     ├── android.yml            # Existing optional TWA build workflow
@@ -172,6 +174,8 @@ The current web implementation intentionally keeps its core recommendation logic
 ```
 
 The root project is currently the web application. The existing Android workflow builds a **Trusted Web Activity (TWA)** wrapper; it is not a native Compose implementation. A future Kotlin/Jetpack Compose client should be treated as a separate native implementation that reuses Cadence's product behavior and visual language rather than wrapping this HTML.
+
+For the current v0.3 release notes, OAuth/PKCE setup, service-worker cache version, and TWA verification checklist, see [TWA-SETUP.md](TWA-SETUP.md). The live `.well-known/assetlinks.json` is intentionally separate from the template in `assetlinks.example.json`.
 
 ## Current scope and limitations
 
