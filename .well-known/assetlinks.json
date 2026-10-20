@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dev.edgeone.cadence",
+      "sha256_cert_fingerprints": [
+        "12:6A:AD:D0:C0:A6:81:98:1A:AF:0F:A1:5F:2A:78:FB:A9:06:AF:47:6B:01:CE:21:5B:7B:4E:77:F2:C3:32:85"
+      ]
+    }
+  }
+]
