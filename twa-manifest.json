@@ -11,8 +11,8 @@
   "startUrl": "/?source=twa",
   "iconUrl": "https://cadence.edgeone.dev/icons/icon.svg",
   "webManifestUrl": "https://cadence.edgeone.dev/manifest.webmanifest",
-  "appVersion": "1.0.0",
-  "appVersionCode": 1,
+  "appVersion": "1.0.1",
+  "appVersionCode": 2,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "android"
