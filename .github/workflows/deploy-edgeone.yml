@@ -41,7 +41,11 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); JSON.parse(require('fs').readFileSync('.well-known/assetlinks.json','utf8'));"
           mkdir -p dist/icons dist/.well-known
           cp index.html manifest.webmanifest sw.js dist/
-          cp icons/icon.svg icons/icon-192.png dist/icons/
+          cp icons/* dist/icons/
+          test -s dist/icons/icon-96.png
+          test -s dist/icons/apple-touch-icon.png
+          test -s dist/icons/icon-512.png
+          test -s dist/icons/maskable-512.png
           cp .well-known/assetlinks.json dist/.well-known/
 
       - name: Validate deployment inputs
