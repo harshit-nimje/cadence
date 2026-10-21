@@ -19,7 +19,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (/spotify\\.com$|supabase\\.co$|itunes\\.apple\\.com$/.test(url.hostname)) return;
+  if (/spotify\.com$|supabase\.co$|itunes\.apple\.com$/.test(url.hostname)) return;
   if (request.headers.has('range')) return;
   if (request.mode === 'navigate') {
     event.respondWith(caches.match('./index.html').then(hit => {
