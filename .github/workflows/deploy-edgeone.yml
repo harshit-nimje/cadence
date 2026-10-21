@@ -1,11 +1,14 @@
 name: Deploy Cadence to EdgeOne Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       edgeone_project_name:
         description: Exact existing EdgeOne Pages project name (not the domain)
-        required: true
+        required: false
+        default: cadence
         type: string
 
 permissions:
@@ -51,7 +54,7 @@ jobs:
       - name: Validate deployment inputs
         env:
           EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
-          EDGEONE_PROJECT_NAME: ${{ inputs.edgeone_project_name }}
+          EDGEONE_PROJECT_NAME: ${{ inputs.edgeone_project_name || vars.EDGEONE_PROJECT_NAME || 'cadence' }}
         shell: bash
         run: |
           set -euo pipefail
