@@ -1,5 +1,5 @@
-/* Cadence v0.3 service worker: app shell + safe runtime caching. Bump VERSION on every deploy. */
-const VERSION = 'cadence-v11';
+/* Cadence v1.0.1 service worker: app shell + safe runtime caching. Bump VERSION on every deploy. */
+const VERSION = 'cadence-v22';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-96.png', './icons/apple-touch-icon.png',
@@ -19,7 +19,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (/spotify\.com$|supabase\.co$|itunes\.apple\.com$/.test(url.hostname)) return;
+  if (/spotify\\.com$|supabase\\.co$|itunes\\.apple\\.com$/.test(url.hostname)) return;
   if (request.headers.has('range')) return;
   if (request.mode === 'navigate') {
     event.respondWith(caches.match('./index.html').then(hit => {
