@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="theme-color" content="#120e1d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
-<meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no"><meta name="application-name" content="Cadence"><meta name="apple-mobile-web-app-title" content="Cadence"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no"><meta name="application-name" content="Cadence"><meta name="app-version" content="1.0.1"><meta name="apple-mobile-web-app-title" content="Cadence"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{background:#120e1d}</style>
 <meta name="description" content="Swipe songs and Cadence learns your taste — a daily pick, mood playlists and a Spotify link.">
@@ -204,6 +204,7 @@ input[type=range]{height:2px;background:rgba(255,255,255,.22)}
 .ov.like{opacity:calc(var(--ol,0)*.96);background:radial-gradient(130% 95% at 100% 55%,rgba(255,92,138,.97),rgba(255,92,138,.6) 70%)}.ov.like svg{fill:currentColor;transform:scale(calc(.55 + .45*var(--ol,0)))}
 .ov.nope{opacity:calc(var(--on,0)*.96);background:radial-gradient(130% 95% at 0% 55%,rgba(91,134,255,.97),rgba(91,134,255,.6) 70%)}.ov.nope svg{transform:scale(calc(.55 + .45*var(--on,0)))}
 .ov.mid{opacity:calc(var(--om,0)*.96);background:radial-gradient(130% 95% at 50% 100%,rgba(255,198,90,.97),rgba(255,198,90,.6) 70%);color:#2a1d02}.ov.mid svg{transform:scale(calc(.55 + .45*var(--om,0)))}
+.ov.open{opacity:calc(var(--ou,0)*.96);background:radial-gradient(130% 95% at 50% 0%,rgba(30,215,96,.97),rgba(30,215,96,.62) 72%);color:#04230f}.ov.open svg{fill:none;stroke:currentColor;transform:scale(calc(.55 + .45*var(--ou,0)))}
 /* page transitions */
 .view.leaving{pointer-events:none}
 .view.on .wrap>*,.view.on .list>*{animation:rise .7s var(--ease) backwards}
@@ -232,7 +233,7 @@ input[type=range]{height:2px;background:rgba(255,255,255,.22)}
 .view.on .list>:nth-child(1){animation-delay:.2s}.view.on .list>:nth-child(2){animation-delay:.24s}.view.on .list>:nth-child(3){animation-delay:.28s}.view.on .list>:nth-child(4){animation-delay:.32s}.view.on .list>:nth-child(5){animation-delay:.36s}.view.on .list>:nth-child(6){animation-delay:.4s}.view.on .list>:nth-child(n+7){animation-delay:.44s}
 .view h1{transform-origin:0 100%;transform:translateY(calc(var(--sy,0)*-.16px));opacity:calc(1 - var(--sy,0)/340)}
 /* daily pill */
-.dpill{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 11px;margin-bottom:10px;border-radius:99px;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);font-size:13px;position:relative;flex:none;transition:transform .3s var(--ease),border-color .4s,background .4s}
+.dpill{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 11px;margin-bottom:10px;border-radius:99px;background:rgba(30,23,48,.82);border:1px solid var(--line);font-size:13px;position:relative;flex:none;transition:transform .3s var(--ease),border-color .4s,background .4s}
 .dpill svg{width:16px;height:16px}.dpill .fl{color:var(--mid);display:grid}.dpill b{font-weight:600}.dpill em{font-style:normal;color:var(--like);font-weight:700;font-variant-numeric:tabular-nums}
 .dpill .sk{color:var(--dim);padding-left:9px;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
 .dpill.ready:before{content:"";position:absolute;inset:-1px;border-radius:99px;border:1px solid var(--like);pointer-events:none;animation:ring 2.4s ease-out infinite}
@@ -559,25 +560,168 @@ header:before{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 #meter.shift #mlabel,#meter.shift #mtail{color:var(--mid)}
 #meter.shift #mcap #mlabel:after{color:var(--mid);opacity:.7}
 @media(max-width:720px){
-  #mcap #mtail{display:inline!important}
-  #mcap #mlabel{display:none}
+  #mcap{font-size:8px;letter-spacing:.07em}
+  #mcap #mlabel,#mcap #mtail{display:inline!important}
+  #mcap .tw{display:inline-block!important}
+  #mcap .twd{display:inline-block!important}
 }
 /* the archetype strip sits just above the card, not floating in the header gap */
 .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #strip{margin:0;max-width:100%;min-width:0}
 #strip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 
+/* ================= v12: app, not a browser ================= */
+/* kill pull-to-refresh everywhere it could be triggered */
+html,body,main{overscroll-behavior:none!important;overscroll-behavior-y:none!important}
+#v-discover,.stage,.stack{touch-action:none}
+
+/* ================= v13: dock wrapper + mini player ================= */
+#dockwrap{grid-column:2;display:flex;align-items:center;gap:10px;min-width:0}
+@media(max-width:720px){
+  #dockwrap{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;translate:-50% 0;z-index:6;max-width:calc(100vw - 10px);gap:8px}
+  #dockwrap nav{position:relative;left:auto;bottom:auto;translate:none;z-index:auto;margin:0}
+}
+#miniArt,#miniPlay{display:none;flex:0 0 auto;place-items:center}
+body[data-mini] #miniArt,body[data-mini] #miniPlay{display:grid}
+#miniArt{width:40px;height:40px;border-radius:13px;background-color:#241a38;background-size:cover;background-position:center;border:1px solid var(--line);overflow:hidden;cursor:pointer;color:var(--dim);transition:transform .2s var(--ease),border-color .3s}
+#miniArt:active{transform:scale(.94)}
+#miniArt svg{width:18px;height:18px}
+#miniPlay{width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:transform .2s var(--ease),background .25s,color .25s,border-color .25s}
+#miniPlay:active{transform:scale(.92)}
+#miniPlay svg{width:17px;height:17px}
+#miniPlay.on{background:var(--ink);color:#1a1326;border-color:var(--ink)}
+@media(min-width:721px){
+  body[data-mini] #miniArt{position:fixed;left:calc(50% - 44px);bottom:20px}
+  body[data-mini] #miniPlay{position:fixed;left:calc(50% + 4px);bottom:20px}
+}
+/* keep room for the mini player on narrow phones: tuck the active tab label away */
+@media(max-width:409px){
+  body[data-mini] #dockwrap nav button.on span{max-width:0!important;margin-left:0!important;opacity:0!important}
+}
+@media(max-width:360px){#miniArt,#miniPlay{width:34px;height:34px}#miniArt{border-radius:11px}#miniPlay svg{width:15px;height:15px}}
+@media(max-width:340px){
+  #dockwrap{gap:5px}
+  #dockwrap nav button{min-width:38px;padding:0 9px}
+  #miniArt,#miniPlay{width:32px;height:32px}
+}
+
+/* ================= v14: Moods — describe a feeling, get a live playlist ================= */
+#v-moods{padding:0;overflow:hidden}
+#v-moods.on{display:flex;flex-direction:column}
+#moodWave{position:absolute;left:0;right:0;bottom:0;width:100%;height:66%;z-index:0;pointer-events:none;opacity:0;transition:opacity .7s var(--ease);-webkit-mask-image:linear-gradient(to top,#000 42%,transparent);mask-image:linear-gradient(to top,#000 42%,transparent)}
+#v-moods.on #moodWave{opacity:1}
+.mscroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:92px 18px 10px;scrollbar-width:none}
+.mscroll.hasres{justify-content:flex-start}
+.mhead{width:100%;max-width:640px;text-align:center;transition:opacity .4s var(--ease)}
+.hasres .mhead{text-align:left;margin-bottom:14px}
+.mq{font:800 clamp(30px,8.6vw,46px)/1.05 var(--d);letter-spacing:-.04em;margin:0 0 12px;text-wrap:balance;text-shadow:0 2px 30px rgba(10,6,18,.55)}
+.mq.qin{animation:qin .62s var(--ease)}
+@keyframes qin{from{opacity:0;transform:translateY(12px) scale(.985)}}
+.hasres .mq{font-size:clamp(21px,5.4vw,29px);margin-bottom:4px;color:var(--ink)}
+.msub{color:var(--dim);font-size:14.5px;line-height:1.5;max-width:36ch;margin:0 auto 20px}
+.hasres .msub{display:none}
+.msparks{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.hasres .msparks{display:none}
+.chip.spark{min-height:0;padding:8px 14px;font-size:13px;background:rgba(30,23,48,.72)}
+.mres{width:100%;max-width:640px}
+.mtags{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px}
+.mtag{padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:12.5px;color:var(--ink)}
+.mtag.read{background:none;border-color:transparent;padding-left:0;color:var(--dim);text-transform:capitalize}
+.mload{display:flex;gap:7px;padding:14px 4px}
+.mload i{width:7px;height:7px;border-radius:50%;background:var(--like);animation:mdot 1s ease-in-out infinite}
+.mload i:nth-child(2){animation-delay:.15s}.mload i:nth-child(3){animation-delay:.3s}
+@keyframes mdot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+.mres .mrow{margin:0 0 14px}
+.mres .list{margin-bottom:18px}
+.mres .item{animation:moodin .55s var(--ease) backwards}
+.mres .item.moodin{animation:moodin .55s var(--ease)}
+@keyframes moodin{from{opacity:0;transform:translateY(14px) scale(.985);filter:blur(6px)}}
+.mrow{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 24px}
+.moodbar{position:relative;z-index:2;flex:none;padding:10px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 40%,transparent)}
+/* clear the floating dock on phones so the input is never behind it */
+@media(max-width:720px){.moodbar{padding-bottom:calc(88px + env(safe-area-inset-bottom))}.mscroll{padding-bottom:20px}}
+.mbar{display:flex;gap:10px;align-items:center;max-width:660px;margin:0 auto}
+#moodInput{flex:1;min-width:0;height:54px;margin:0;padding:0 20px;border-radius:99px;border:1px solid var(--line);background:rgba(30,23,48,.92);color:var(--ink);font:500 16px/1 var(--b);box-shadow:0 12px 34px -14px rgba(0,0,0,.8)}
+#moodInput::placeholder{color:var(--dim)}
+.mgo{width:54px;height:54px;flex:none;border-radius:50%;background:var(--ink);color:#1a1326;display:grid;place-items:center;transition:transform .18s var(--ease),opacity .2s}
+.mgo:active{transform:scale(.92)}.mgo:disabled{opacity:.45}
+.mgo svg{width:20px;height:20px}
+@media(prefers-reduced-motion:reduce){
+  .mq.qin,.mres .item,.mres .item.moodin{animation:none}
+  .mload i{animation:none;opacity:.6}
+}
+
+/* ================= v17: softer, more serene ================= */
+:root{--bg:#151022;--ink:#efe9e2;--dim:#a99fbd;--line:rgba(255,255,255,.085);--glass:rgba(28,22,44,.5);--like:#ef7fa2;--nope:#8fa8ef;--mid:#eec978;--soft:cubic-bezier(.22,.61,.36,1)}
+html,body{background:var(--bg)}
+/* gentler, longer transitions everywhere */
+.card,#deck .card{transition:transform .68s var(--soft),opacity .52s var(--soft)}
+#deck .card{transition:transform .68s var(--soft),opacity .52s var(--soft)}
+.item{transition:background .45s var(--soft),transform .42s var(--soft)}
+.chip{transition:background .5s var(--soft),color .5s var(--soft),transform .32s var(--soft)}
+.btn,.sm,.act,.mgo,#miniPlay,#miniArt,.lv,.dpill,.mgo{transition-timing-function:var(--soft)}
+nav button{transition:background .5s var(--soft),color .5s var(--soft),scale .42s var(--soft)}
+nav button:active{scale:.955}
+.chip:active{transform:scale(.97)}.item:active{transform:scale(.993)}.btn:active{transform:scale(.978)}
+.act:active{transform:scale(.94)}.mgo:active{transform:scale(.95)}.dpill:active{scale:.97}
+/* softer depth + shadows */
+.face,.back{box-shadow:0 20px 46px -22px rgba(0,0,0,.58),0 0 0 1px rgba(255,255,255,.1)}
+.cb{box-shadow:0 12px 30px -16px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1)}
+/* softer swipe overlays */
+.ov{font-weight:700}
+.ov.like{background:radial-gradient(135% 100% at 100% 55%,rgba(239,127,162,.7),rgba(239,127,162,.3) 74%)}
+.ov.nope{background:radial-gradient(135% 100% at 0% 55%,rgba(143,168,239,.7),rgba(143,168,239,.3) 74%)}
+.ov.mid{background:radial-gradient(135% 100% at 50% 100%,rgba(238,201,120,.7),rgba(238,201,120,.3) 74%)}
+.ov.open{background:radial-gradient(135% 100% at 50% 0%,rgba(30,215,96,.7),rgba(30,215,96,.3) 74%)}
+/* softer glow behind the score */
+.glow{background:radial-gradient(closest-side,hsl(var(--sh) 88% 62%/calc(.04 + var(--sc)*.16)),transparent);filter:blur(30px)}
+/* gentler entrances */
+.view.on .wrap>*,.view.on .list>*{animation-duration:.85s}
+@keyframes rise{from{opacity:0;transform:translateY(11px)}}
+@keyframes moodin{from{opacity:0;transform:translateY(10px)}}
+@keyframes stepin{from{opacity:0;transform:translateY(12px)}}
+/* softer chrome */
+.panel,.item,.hero,.lv,.reveal2,.chip,.act{background:rgba(30,23,48,.72)}
+.mtag{background:rgba(255,255,255,.07)}
+#sheet .sp{background:rgba(28,22,44,.95)}
+.moodbar{background:linear-gradient(to top,var(--bg) 46%,transparent)}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+
+/* ================= v18: the header types itself in ================= */
+.tw{display:inline-block;white-space:pre;animation:typin .78s var(--soft) backwards;animation-delay:calc(var(--i) * var(--tstep,.05s))}
+@keyframes typin{
+  0%{opacity:0;filter:blur(4.5px);transform:translateY(2.5px)}
+  55%{opacity:1;filter:blur(.6px)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+/* the rotating question already has its own entrance — let the typing carry it */
+#moodQ.qin{animation:none}
+@media(prefers-reduced-motion:reduce){.tw{animation:none;filter:none;transform:none}}
+
+/* ================= v19: wrap by word + lighter glyphs ================= */
+/* each word is one unbreakable unit; lines only break at the spaces between them */
+.twd{display:inline-block;white-space:nowrap}
+/* the rotating question can be 30 glyphs — skip per-glyph blur there and blur the
+   whole line once instead, which is a single layer rather than thirty */
+#moodQ .tw{animation-name:typinlite}
+@keyframes typinlite{0%{opacity:0;transform:translateY(3px)}100%{opacity:1;transform:none}}
+#moodQ.typing{animation:qblur 1.05s var(--soft)}
+@keyframes qblur{from{filter:blur(6px);opacity:.5}to{filter:blur(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){#moodQ.typing{animation:none}}
+/* let off-screen panels skip layout work */
+.panel,.hero,.lv{content-visibility:auto;contain-intrinsic-size:auto 320px}
+
 </style></head><body>
 <div id="splash"><div class="sl">cadence<i>.</i></div><div class="sb2"><i></i></div></div>
 <div id="bg"></div>
 <header><div class="logo">cadence<i>.</i></div>
-<nav id="nav"><button data-v="discover" class="on">Swipe</button><button data-v="foryou">For you</button><button data-v="moods">Moods</button><button data-v="taste">Taste</button><button data-v="game">Game</button></nav>
+<div id="dockwrap"><div id="miniArt" role="button" tabindex="0" aria-label="Now playing — open Swipe"></div><nav id="nav"><button data-v="discover" class="on">Swipe</button><button data-v="foryou">For you</button><button data-v="moods">Moods</button><button data-v="game">Game</button><button data-v="taste">Taste</button></nav><div id="miniPlay" role="button" tabindex="0" aria-label="Play"></div></div>
 <div id="meter"><div class="mtrack"><b><i id="mbar"></i></b><small id="mcap"><span id="mlabel"></span><span id="mtail">Taste confidence</span></small></div></div></header>
 <main>
-<section class="view on" id="v-discover"><aside class="side" id="insL"></aside><div class="col"><div class="stage"><div id="strip"></div><div class="stack" id="deck"></div></div><div class="dock"><button class="act undo" id="bUndo" aria-label="Undo"></button><button class="act nope" id="bNope" aria-label="Dislike"></button><button class="act like" id="bLike" aria-label="Like"></button><button class="act mid" id="bSkip" aria-label="Skip"></button><button class="act shuf" id="bShuf" aria-label="Shuffle deck"></button></div><div class="keys">← dislike · ↓ skip · → like · space play · Z undo · S shuffle</div></div><aside class="side" id="insR"></aside></section>
+<section class="view on" id="v-discover"><aside class="side" id="insL"></aside><div class="col"><div class="stage"><div id="strip"></div><div class="stack" id="deck"></div></div><div class="dock"><button class="act undo" id="bUndo" aria-label="Undo"></button><button class="act nope" id="bNope" aria-label="Dislike"></button><button class="act like" id="bLike" aria-label="Like"></button><button class="act mid" id="bSkip" aria-label="Skip"></button><button class="act shuf" id="bShuf" aria-label="Shuffle deck"></button></div><div class="keys">← dislike · ↓ skip · → like · ↑ play on Spotify · space play · Z undo · S shuffle</div></div><aside class="side" id="insR"></aside></section>
 <section class="view" id="v-foryou"><div class="wrap"><h1>For you</h1><p class="sub">Ranked live against everything you've swiped. Like more, and this sharpens.</p><div class="list" id="forList"></div></div></section>
 <section class="view" id="v-game"><div class="wrap"><h1>Mystery</h1><p class="sub" id="gSub"></p><div id="gBox"></div></div></section>
-<section class="view" id="v-moods"><div class="wrap"><h1>Moods</h1><p class="sub">Eight moods, filtered through your taste.</p><div class="chips" id="moodChips"></div><div class="rowb" style="margin-bottom:14px"><button class="btn ghost" id="savePl">Save playlist to Spotify</button></div><div class="list" id="moodList"></div></div></section>
+<section class="view" id="v-moods"><canvas id="moodWave" aria-hidden="true"></canvas><div class="mscroll" id="moodScroll"><div class="mhead" id="moodHead"><h1 class="mq qin" id="moodQ">How are you feeling today?</h1><p class="msub" id="moodSub">Type what you feel, Cadence does the rest.</p><div class="msparks" id="moodSparks"></div></div><div class="mres" id="moodRes"></div></div><form class="moodbar" id="moodBar" autocomplete="off"><div class="mbar"><input id="moodInput" placeholder="Tell me the mood…" aria-label="Describe the mood" autocomplete="off" autocapitalize="sentences" enterkeyhint="go"><button class="mgo" type="submit" id="moodGo" aria-label="Build playlist"></button></div></form></section>
 <section class="view" id="v-taste"><div class="wrap"><h1>Your taste</h1><div class="panel"><div class="read" id="readout"></div><div class="stats" id="stats"></div></div>
 <div class="panel" id="srcPanel"><h3>Taste sources</h3><div id="srcBody"></div></div><div class="panel"><h3>Genres you lean toward</h3><div id="gBars"></div></div><div class="panel"><h3>Sound profile</h3><div id="fBars"></div></div>
 <div class="panel"><h3>Recently liked</h3><div class="list" id="likedList"></div></div>
@@ -854,7 +998,6 @@ function recommend(n) {
     .sort((a, b) => b.s - a.s);
   return ranked.slice(0, n).map(x => x.t);
 }
-
 /* =====================================================================
    5. DATA FETCHING — iTunes Search API over JSONP
       (iTunes CORS headers are unreliable, so we use a script-tag callback)
@@ -879,7 +1022,7 @@ function normalize(raw) {
   const y = raw.releaseDate ? parseInt(raw.releaseDate.slice(0, 4), 10) : null;
   const t = {
     id: raw.trackId, t: raw.trackName || 'Unknown', a: raw.artistName || 'Unknown',
-    g, y, p: raw.previewUrl, art: raw.artworkUrl100 || '',
+    g, y, p: raw.previewUrl, art: raw.artworkUrl100 || '', pg: raw.primaryGenreName || '',
     ms: raw.trackTimeMillis || 30000, src: 'itunes'
   };
   t.f = inferFeatures(t);
@@ -1121,7 +1264,7 @@ async function saveToSpotify(t) {
 'use strict';
 const audio=$('#audio'),T=new Map();let DECK=[],undoStack=[],nowId=null,auto=false,view='discover',curMood='chill',picked=new Set();
 const sv=(p,x='')=>`<svg viewBox="0 0 24 24" fill="${x?'currentColor':'none'}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-const IC={play:sv('<path d="M7 4v16l13-8z"/>',1),pause:sv('<path d="M7 4h3v16H7zM14 4h3v16h-3z"/>',1),heart:sv('<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.800-8 11-8 11z"/>'),x:sv('<path d="M6 6l12 12M18 6L6 18"/>'),skip:sv('<path d="M12 5v14M6 13l6 6 6-6"/>'),undo:sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>')};
+const IC={play:sv('<path d="M7 4v16l13-8z"/>',1),pause:sv('<path d="M7 4h3v16H7zM14 4h3v16h-3z"/>',1),heart:sv('<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.800-8 11-8 11z"/>'),x:sv('<path d="M6 6l12 12M18 6L6 18"/>'),skip:sv('<path d="M12 5v14M6 13l6 6 6-6"/>'),undo:sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),spotify:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.1"/><path d="M7.1 9.3c3.4-1.15 7.3-.72 10.1 1.05"/><path d="M7.85 12.4c2.8-.9 5.9-.55 8.25 1"/><path d="M8.55 15.45c2.1-.66 4.55-.4 6.4.82"/></svg>',note:sv('<path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="3"/><circle cx="16.5" cy="16" r="3"/>')};
 const reg=t=>(T.set(String(t.id),t),t);
 const hue=t=>(String(t.id).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7)>>>0)%360;
 function wave(t,n=60){let h=hue(t)+9,o='';for(let i=0;i<n;i++){h=(Math.imul(h,1103515245)+12345)>>>0;const v=.22+((h>>8)%100)/100*.78;o+=`<i style="height:${Math.round(10+v*90)}%"></i>`}return `<div class="wb">${o}</div><div class="wf">${o}</div><i class="ph"></i>`}
@@ -1138,9 +1281,9 @@ audio.ontimeupdate=()=>{const p=audio.duration?audio.currentTime/audio.duration:
 /* ambient backdrop */
 function setBg(t){const bg=$('#bg'),u=t&&artOf(t);if(bg.dataset.u===u)return;bg.dataset.u=u;const d=document.createElement('div');d.style.backgroundImage=u?`url(${u})`:`linear-gradient(135deg,hsl(${t?hue(t):260} 60% 40%),#120e1d)`;bg.appendChild(d);requestAnimationFrame(()=>d.classList.add('in'));setTimeout(()=>{while(bg.children.length>2)bg.firstChild.remove()},1000)}
 /* deck */
-function cardHTML(t){reg(t);return `<div class="card" data-id="${t.id}" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="stamp like">Like</div><div class="stamp nope">Nope</div><div class="stamp mid">Mid</div><div class="info"><span class="why">${esc(reasonFor(t))}</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div>`}
+function cardHTML(t){reg(t);return `<div class="card" data-id="${t.id}" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="stamp like">Like</div><div class="stamp nope">Nope</div><div class="stamp mid">Mid</div><div class="info"><span class="why">${esc(reasonFor(t))}</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t,24)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div>`}
 function renderDeck(){const el=$('#deck');if(!DECK.length){el.innerHTML='<div class="empty"><b>Finding more tracks…</b><span>Your next batch is loading.</span></div>';refillPool().then(a=>{if(a){ensureDeck();renderDeck()}});setBg(null);return}
-el.innerHTML=DECK.slice(0,3).reverse().map(cardHTML).join('');const top=el.lastElementChild;drag(top,DECK[0]);setBg(DECK[0]);sync();if(auto&&view==='discover')playTrack(DECK[0],true)}
+el.innerHTML=DECK.slice(0,3).reverse().map(cardHTML).join('');const top=el.lastElementChild;drag(top,DECK[0]);setBg(DECK[0]);sync();if(auto&&view==='discover')ensurePlaying(DECK[0])}
 function ensureDeck(){let g=0;while(DECK.length<6&&g++<8){const m=recommend(10);if(!m.length)break;for(const t of m)if(!DECK.some(d=>d.id===t.id))DECK.push(t)}if(DECK.length<3)refillPool().then(a=>{if(a){ensureDeck();renderDeck()}})}
 function drag(c,t){let sx,sy,dx=0,dy=0,on=0;const st=k=>c.querySelector('.stamp.'+k),show=()=>{st('like').style.opacity=Math.max(0,dx/110);st('nope').style.opacity=Math.max(0,-dx/110);st('mid').style.opacity=Math.abs(dy)>Math.abs(dx)?Math.max(0,dy/110):0};
 c.onpointerdown=e=>{if(e.target.closest('button'))return;on=1;dx=dy=0;sx=e.clientX;sy=e.clientY;c.setPointerCapture(e.pointerId);c.style.transition='none';c.style.cursor='grabbing';if(!auto){auto=true}};
@@ -1158,7 +1301,7 @@ function rowHTML(t,extra=''){reg(t);return `<div class="item" data-row="${t.id}"
 const art100=t=>t.art||'';
 function bars(el,rows,fmt=v=>v.toFixed(0)){const mx=Math.max(...rows.map(r=>Math.abs(r[1])),.001);el.innerHTML=rows.length?rows.map(([l,v])=>`<div class="bar"><span>${esc(l)}</span><u><i style="width:${Math.max(5,Math.abs(v)/mx*100)}%"></i></u><span>${fmt(v)}</span></div>`).join(''):'<span class="sub">No signal yet — swipe a few cards.</span>'}
 /* views */
-function go(v){view=v;$$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));({foryou:rForYou,daily:rDaily,moods:rMoods,taste:rTaste,discover:()=>{if(auto&&DECK[0])playTrack(DECK[0],true)}})[v]();audio.loop=v==='discover'}
+function go(v){view=v;$$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));({foryou:rForYou,daily:rDaily,moods:rMoods,taste:rTaste,discover:()=>{if(auto&&DECK[0]&&nowId==null)playTrack(DECK[0])}})[v]();audio.loop=v==='discover'}
 function rForYou(){const l=recommend(14);$('#forList').innerHTML=l.length?l.map(t=>rowHTML(t)).join(''):'<p class="sub">Swipe a few songs first.</p>';sync()}
 function rDaily(){const t=dailyPick();$('#dSub').textContent=`One song a day, chosen from your taste. Streak: ${S.streak.count||1} day${(S.streak.count||1)>1?'s':''}.`;if(!t)return;reg(t);$('#dailyBox').innerHTML=`<div class="hero">${t.art?`<img src="${esc(artOf(t))}" alt="">`:'<img alt="">'}<div><span class="why" style="background:var(--line)">${esc(reasonFor(t))}</span><h2>${esc(t.t)}</h2><p style="color:var(--dim)">${esc(t.a)}${t.y?' · '+t.y:''}</p><div class="wave" data-id="${t.id}" style="margin:18px 0;height:44px">${wave(t,56)}</div><div class="rowb"><button class="btn" data-play="${t.id}">Play</button><button class="btn ghost" data-save="${t.id}">Save to Spotify</button></div></div></div>`;sync()}
 function rMoods(){$('#moodChips').innerHTML=Object.entries(MOODS).map(([k,m])=>`<button class="chip ${k===curMood?'on':''}" data-mood="${k}">${m.em} ${m.name}</button>`).join('');$('#moodList').innerHTML=buildMood(curMood).map(t=>rowHTML(t)).join('');sync()}
@@ -1171,8 +1314,8 @@ document.addEventListener('click',e=>{const p=e.target.closest('[data-play]'),s=
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)};
 $('#bLike').onclick=()=>vote('like');$('#bNope').onclick=()=>vote('nope');$('#bSkip').onclick=()=>vote('skip');$('#bUndo').onclick=undo;
 $('#bLike').innerHTML=IC.heart;$('#bNope').innerHTML=IC.x;$('#bSkip').innerHTML=IC.skip;$('#bUndo').innerHTML=IC.undo;
-document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||view!=='discover'||$('#onboard').classList.contains('open'))return;const k=e.key;if(k==='ArrowRight')vote('like');else if(k==='ArrowLeft')vote('nope');else if(k==='ArrowDown'){e.preventDefault();vote('skip')}else if(k===' '){e.preventDefault();auto=true;DECK[0]&&playTrack(DECK[0])}else if(k.toLowerCase()==='z')undo()});
-$('#savePl').onclick=()=>{const l=buildMood(curMood);if(l.length)savePlaylist(MOODS[curMood].name,l)};
+document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||view!=='discover'||$('#onboard').classList.contains('open'))return;const k=e.key;if(k==='ArrowRight')vote('like');else if(k==='ArrowLeft')vote('nope');else if(k==='ArrowUp'){e.preventDefault();openCard()}else if(k==='ArrowDown'){e.preventDefault();vote('skip')}else if(k===' '){e.preventDefault();auto=true;DECK[0]&&playTrack(DECK[0])}else if(k.toLowerCase()==='z')undo()});
+const _sp0=$('#savePl');if(_sp0)_sp0.onclick=()=>{const l=buildMood(curMood);if(l.length)savePlaylist(MOODS[curMood].name,l)};
 $('#spSave').onclick=()=>{S.sp.clientId=$('#spClient').value.trim();S.sp.redirect=$('#spRedirect').value.trim()||SP.redirect();save();toast('Saved','ok')};
 $('#spotifyBtn').onclick=()=>SP.begin();$('#spOff').onclick=()=>{SP.disconnect();renderSpStatus();toast('Disconnected')};
 $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exportSnapshot(),null,2)],{type:'application/json'}));a.download='cadence-taste.json';a.click()};
@@ -1204,7 +1347,7 @@ function rInsights(){const g=topGenres(3),h=new Date().getHours(),hi=h<5?'Late n
 $('#strip').innerHTML=`<b>${archetype()}</b><span>${g[0]?esc(g[0][0])+' · ':''}${sk?sk+' day streak':'start a streak'}</span>`;
 $('#insL').innerHTML=`<small>${hi}</small><h3>${archetype()}</h3><div class="read2">${nSw()?tasteReadout():profileLine()}</div><div id="insBars" style="margin:16px 0 10px"></div><small>${nextUnlock()}</small>${SP.connected()?'':'<br><button class="btn ghost" id="insSp" style="margin-top:18px">Connect Spotify</button>'}`;bars($('#insBars'),g);const b=$('#insSp');if(b)b.onclick=connectSpotify;
 const rec=(S.history||[]).slice(0,5);$('#insR').innerHTML='<small>Recent swipes</small>'+(rec.length?rec.map(h=>{const[v,c]=VI[h.verdict]||VI.skip;return`<div class="rec"><img src="${esc(h.track.art||'')}" alt=""><div class="m"><b>${esc(h.track.t)}</b><span>${esc(h.track.a)}</span></div><span style="color:${c}">${IC[v]}</span></div>`}).join(''):'<p class="sub" style="margin-top:10px;font-size:14px">Your swipes show up here, with Z to undo.</p>')}
-function go(v){view=v;$$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));({foryou:rForYou,daily:rDaily,moods:rMoods,taste:rTaste,discover:()=>{rInsights();if(auto&&DECK[0])playTrack(DECK[0],true)}})[v]();audio.loop=v==='discover'}
+function go(v){view=v;$$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));({foryou:rForYou,daily:rDaily,moods:rMoods,taste:rTaste,discover:()=>{rInsights();if(auto&&DECK[0]&&nowId==null)playTrack(DECK[0])}})[v]();audio.loop=v==='discover'}
 function rMoods(){$('#moodChips').innerHTML=Object.entries(MOODS).map(([k,m])=>`<button class="chip ${k===curMood?'on':''}" data-mood="${k}">${sv(MI[k])}${m.name}</button>`).join('');$('#moodList').innerHTML=buildMood(curMood).map(t=>rowHTML(t)).join('');sync()}
 function renderSpStatus(){const c=SP.connected();let w='';if(!c){if(location.protocol==='file:')w=' You opened this as a file. Run python3 -m http.server 8000 in this folder, then open http://127.0.0.1:8000/';else if(location.hostname==='localhost')w=' Open this page at 127.0.0.1 instead of localhost. Spotify rejects localhost.'}
 $('#spStat').textContent=c?'Connected. Likes save to Spotify and your top artists seed your taste.':'Seeds your taste from your top artists and saves songs and playlists. The redirect URI must be http://127.0.0.1:PORT/ or https.'+w;$('#spotifyBtn').textContent=c?'Spotify connected':'Connect';$('#spOff').style.display=c?'':'none'}
@@ -1254,17 +1397,17 @@ if(window.supabase)sbInit();else addEventListener('load',function(){if(window.su
 const hasWA=!!document.documentElement.animate,vib=p=>navigator.vibrate&&navigator.vibrate(p);
 const SUIT={d:'<path d="M12 2l7 10-7 10-7-10z"/>',c:'<circle cx="12" cy="7" r="4.2"/><circle cx="6.8" cy="14" r="4.2"/><circle cx="17.2" cy="14" r="4.2"/><path d="M10.8 14h2.4l1.6 7H9.200z"/>',h:'<path d="M12 21S3 15 3 9a4.500 4.500 0 0 1 9-1.500A4.500 4.500 0 0 1 21 9c0 6-9 12-9 12z"/>',s:'<path d="M12 2C8 7 4 9.500 4 13a4 4 0 0 0 7 2.500L10 21h4l-1-5.500A4 4 0 0 0 20 13c0-3.500-4-6-8-11z"/>'};
 const suitOf=t=>{const f=t.f||inferFeatures(t),hi=f.energy>.55,up=f.valence>.55;return hi?(up?'d':'c'):(up?'h':'s')};
-function cardHTML(t){reg(t);const k=suitOf(t),m=Math.round(clamp(scoreTrack(t)*1.4)*100);return `<div class="card" data-id="${t.id}"><div class="in"><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="frame"></div><div class="idx s-${k}" aria-label="Match ${m}"><span>${m}</span><svg viewBox="0 0 24 24" fill="currentColor">${SUIT[k]}</svg><small>match</small></div><div class="stamp like">Like</div><div class="stamp nope">Nope</div><div class="stamp mid">Mid</div><div class="info"><span class="why">${esc(reasonFor(t))}</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div><div class="back"><div class="mark">c<i>.</i></div></div></div></div>`}
+function cardHTML(t){reg(t);const k=suitOf(t),m=Math.round(clamp(scoreTrack(t)*1.4)*100);return `<div class="card" data-id="${t.id}"><div class="in"><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="frame"></div><div class="idx s-${k}" aria-label="Match ${m}"><span>${m}</span><svg viewBox="0 0 24 24" fill="currentColor">${SUIT[k]}</svg><small>match</small></div><div class="stamp like">Like</div><div class="stamp nope">Nope</div><div class="stamp mid">Mid</div><div class="info"><span class="why">${esc(reasonFor(t))}</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t,24)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div><div class="back"><div class="mark">c<i>.</i></div></div></div></div>`}
 let firstDeal=true,shuffling=false,cold=0;
 function renderDeck(d){const el=$('#deck');if(!DECK.length){el.innerHTML='<div class="empty"><b>Finding more tracks…</b><span>Your next batch is loading.</span></div>';refillPool().then(a=>{if(a){ensureDeck();renderDeck()}});setBg(null);return}
 const dl=d===true||d==='pile'||(d===undefined&&firstDeal);firstDeal=false;el.innerHTML=DECK.slice(0,3).reverse().map(cardHTML).join('');drag(el.lastElementChild,DECK[0]);setBg(DECK[0]);sync();
-if(dl)dealAnim(d==='pile'?'pile':'corner');else if(auto&&view==='discover')playTrack(DECK[0],true)}
+if(dl)dealAnim(d==='pile'?'pile':'corner');else if(auto&&view==='discover')ensurePlaying(DECK[0])}
 function dealAnim(origin){const cs=$$('#deck .card'),n=cs.length,REST=[['translateY(0) scale(1)','0deg'],['translateY(14px) scale(.95)','-3deg'],['translateY(26px) scale(.9)','2.5deg']],rf=$('#riffle');if(rf)rf.remove();
 cs.forEach((c,i)=>{const r=REST[n-1-i],s=i%2?1:-1;c.classList.add('down');
 if(hasWA){const pile=origin==='pile',from=pile?{transform:'translateY(0) scale(.92)',rotate:'0deg',opacity:1}:{transform:'translate(180px,-420px) scale(.55)',rotate:s*160+'deg',opacity:0},mid=pile?{transform:`translate(${s*40}px,-40px) scale(.98)`,rotate:-s*8+'deg',opacity:1,offset:.5}:{transform:`translate(${-s*30}px,-60px) scale(1.04)`,rotate:-s*10+'deg',opacity:1,offset:.6};
 c.animate([from,mid,{transform:r[0],rotate:r[1],opacity:1}],{duration:700,delay:i*110,easing:'cubic-bezier(.2,.9,.25,1)',fill:'backwards'})}
 setTimeout(()=>c.classList.remove('down'),i*110+(hasWA?560:0))});
-setTimeout(()=>{if(auto&&view==='discover'&&DECK[0])playTrack(DECK[0],true)},n*110+900);vib([6,40,6,40,10])}
+setTimeout(()=>{if(auto&&view==='discover'&&DECK[0])ensurePlaying(DECK[0])},n*110+900);vib([6,40,6,40,10])}
 function riffle(){return new Promise(res=>{if(!hasWA)return res();const st=$('.stage'),L=document.createElement('div'),N=12;L.id='riffle';L.innerHTML='<i class="cb"></i>'.repeat(N);st.appendChild(L);const cs=$$('.cb',L),w=$('#deck').offsetWidth;let done=0;
 $$('#deck .card').forEach(c=>c.animate([{opacity:1},{opacity:0}],{duration:180,fill:'forwards'}));
 cs.forEach((c,i)=>{const sd=i%2?1:-1,dx=sd*w*.46,rot=sd*9,y=-(i>>1)*1.5,P=`translate(${dx}px,${y}px) rotate(${rot}deg)`;c.style.zIndex=i;
@@ -1282,7 +1425,7 @@ c.onpointerup=c.onpointercancel=()=>{if(!on)return;on=0;c.style.transition='';c.
 const _commit=commit;commit=function(t,v,c){_commit(t,v,c);vib(v==='like'?[8,30,8]:8);const co=$('#coach');if(co){co.remove();localStorage.setItem('cadence.coach','1')}cold=v==='like'?0:cold+1;const b=$('#bShuf');if(cold>=4&&!b.classList.contains('nudge')){b.classList.add('nudge');toast('Not feeling these? Try shuffle.')}};
 $('#bShuf').innerHTML=sv('<path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>');$('#bShuf').onclick=shuffleDeck;
 document.addEventListener('keydown',e=>{if(!/INPUT|TEXTAREA/.test(e.target.tagName)&&e.key.toLowerCase()==='s'&&view==='discover')shuffleDeck()});
-if(!localStorage.getItem('cadence.coach'))$('.stage').insertAdjacentHTML('beforeend','<div id="coach">Swipe right to like · left to pass · down for mid</div>');
+if(!localStorage.getItem('cadence.coach'))$('.stage').insertAdjacentHTML('beforeend','<div id="coach">Swipe right to like · left to pass · down for mid · up to play it whole on Spotify</div>');
 function finishOb(){localStorage.setItem('cadence.onboarded','1');$('#onboard').classList.remove('open');auto=true;DECK=[];ensureDeck();go('discover');renderDeck(true);hud();if(S.seeds&&S.seeds.length)seedPool(S.seeds).then(a=>{if(a&&!nSw()){DECK=[];ensureDeck();renderDeck()}})}
 /* onboarding: account step */
 const obAccount=()=>`<h1 style="margin-top:auto">Keep your taste.</h1><p class="sub">Sign in to carry it across devices, or stay a guest. Guest taste stays on this phone.</p><div><label>Email</label><input id="obE" type="email" autocomplete="email" inputmode="email"><label>Password</label><input id="obP" type="password" autocomplete="new-password" placeholder="6+ characters"></div><div class="obnav"><button class="btn" data-b="up" style="flex:1">Create account</button><button class="btn ghost" data-b="in" style="flex:1">Sign in</button></div><button class="lnk" data-b="guest" style="text-align:center;width:100%">Continue as guest</button>`;
@@ -1292,25 +1435,70 @@ $('#obStep').addEventListener('click',async e=>{const b=e.target.closest('[data-
 
 /* ================= v4 JS ================= */
 const cl01=v=>Math.max(0,Math.min(1,v));
-cardHTML=function(t){reg(t);const m=Math.round(clamp(scoreTrack(t)*1.4)*100),sc=m/100,sh=Math.round(225+sc*130);return `<div class="card" data-id="${t.id}" style="--sc:${sc};--sh:${sh}"><div class="glow"></div><div class="in"><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="tint"></div><div class="score" aria-label="Taste match ${m} percent"><b>${m}<sup>%</sup></b><small>taste match</small></div><div class="info"><span class="why">${esc(reasonFor(t))}</span><div class="row2"><div class="ttl"><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p></div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div><div class="wave" data-id="${t.id}">${wave(t)}</div></div><div class="ov like">${IC.heart}<span>Love it</span></div><div class="ov nope">${IC.x}<span>Not for me</span></div><div class="ov mid">${IC.skip}<span>Mid</span></div><div class="scrim"></div></div></div></div>`};
+cardHTML=function(t){reg(t);const m=Math.round(clamp(scoreTrack(t)*1.4)*100),sc=m/100,sh=Math.round(225+sc*130);return `<div class="card" data-id="${t.id}" style="--sc:${sc};--sh:${sh}"><div class="glow"></div><div class="in"><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="tint"></div><div class="score" aria-label="Taste match ${m} percent"><b>${m}<sup>%</sup></b><small>taste match</small></div><div class="info"><span class="why">${esc(reasonFor(t))}</span><div class="row2"><div class="ttl"><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p></div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div><div class="wave" data-id="${t.id}">${wave(t,24)}</div></div><div class="ov like">${IC.heart}<span>Love it</span></div><div class="ov nope">${IC.x}<span>Not for me</span></div><div class="ov mid">${IC.skip}<span>Mid</span></div><div class="ov open">${IC.spotify}<span>Play on Spotify</span></div><div class="scrim"></div></div></div></div>`};
 renderDeck=function(d){const el=$('#deck');el.style.setProperty('--p',0);
 if(!DECK.length){el.innerHTML='<div class="empty"><b>Finding more tracks…</b><span>Your next batch is loading.</span></div>';refillPool().then(a=>{if(a){ensureDeck();renderDeck()}});setBg(null);return}
 const dl=d===true||d==='pile'||(d===undefined&&firstDeal);firstDeal=false;
 el.innerHTML=DECK.slice(0,3).reverse().map(cardHTML).join('');drag(el.lastElementChild,DECK[0]);setBg(DECK[0]);sync();
-if(dl)dealAnim();else{const cs=el.children;if(hasWA&&cs.length===3)cs[0].animate([{opacity:0}],{duration:380,easing:'ease-out',fill:'backwards'});if(auto&&view==='discover')playTrack(DECK[0],true)}};
+if(dl)dealAnim();else{const cs=el.children;if(hasWA&&cs.length===3)cs[0].animate([{opacity:0}],{duration:380,easing:'ease-out',fill:'backwards'});if(auto&&view==='discover')ensurePlaying(DECK[0])}};
 dealAnim=function(){const cs=$$('#deck .card');cs.forEach((c,i)=>{if(!hasWA)return;c.animate([{transform:'translateY(90px) scale(.86)',opacity:0}],{duration:800,delay:i*100,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'})});
-setTimeout(()=>{if(auto&&view==='discover'&&DECK[0])playTrack(DECK[0],true)},cs.length*100+500);vib([8,40,8])};
+setTimeout(()=>{if(auto&&view==='discover'&&DECK[0])ensurePlaying(DECK[0])},cs.length*100+500);vib([8,40,8])};
 riffle=function(){return new Promise(res=>{const cs=$$('#deck .card');if(!hasWA||!cs.length)return res();cs.forEach((c,i)=>c.animate([{transform:'translateY(-36px) scale(.9)',opacity:0}],{duration:380,delay:(cs.length-1-i)*60,easing:'cubic-bezier(.5,0,.75,.4)',fill:'forwards'}));setTimeout(res,380+cs.length*60)})};
 drag=function(c,t){let sx,sy,dx=0,dy=0,on=0,mv=0,lx=0,lt=0,vx=0,vy=0,ly=0;const deck=$('#deck');
-const show=()=>{const h=Math.abs(dx)>=Math.abs(dy)*.8;c.style.setProperty('--ol',h?cl01(dx/150):0);c.style.setProperty('--on',h?cl01(-dx/150):0);c.style.setProperty('--om',h?0:cl01(dy/150));deck.style.setProperty('--p',cl01(Math.max(Math.abs(dx),Math.max(dy,0))/220))};
+const show=()=>{const h=Math.abs(dx)>=Math.abs(dy)*.8;c.style.setProperty('--ol',h?cl01(dx/150):0);c.style.setProperty('--on',h?cl01(-dx/150):0);c.style.setProperty('--om',(!h&&dy>0)?cl01(dy/150):0);c.style.setProperty('--ou',(!h&&dy<0)?cl01(-dy/150):0);deck.style.setProperty('--p',cl01(Math.max(Math.abs(dx),Math.abs(dy))/220))};
 c.onpointerdown=e=>{if(e.target.closest('button'))return;on=1;mv=0;dx=dy=0;vx=vy=0;sx=lx=e.clientX;sy=ly=e.clientY;lt=performance.now();c.setPointerCapture(e.pointerId);c.style.transition='none';c.classList.add('dragging');deck.classList.add('dragging');auto=true};
-c.onpointermove=e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;mv=Math.max(mv,Math.hypot(dx,dy));const n=performance.now(),dt=Math.max(8,n-lt);vx=.7*vx+.3*(e.clientX-lx)/dt;vy=.7*vy+.3*(e.clientY-ly)/dt;lx=e.clientX;ly=e.clientY;lt=n;c.style.transform=`translate(${dx}px,${Math.max(dy,0)*.6}px) rotate(${dx/22}deg)`;show()};
+c.onpointermove=e=>{if(!on)return;dx=e.clientX-sx;dy=e.clientY-sy;mv=Math.max(mv,Math.hypot(dx,dy));const n=performance.now(),dt=Math.max(8,n-lt);vx=.7*vx+.3*(e.clientX-lx)/dt;vy=.7*vy+.3*(e.clientY-ly)/dt;lx=e.clientX;ly=e.clientY;lt=n;c.style.transform=`translate(${dx}px,${dy<0?dy:dy*.6}px) rotate(${dx/34}deg)`;show()};
 c.onpointerup=c.onpointercancel=()=>{if(!on)return;on=0;c.classList.remove('dragging');deck.classList.remove('dragging');
-if(dx>110||(vx>.6&&dx>35))return vote('like');if(dx<-110||(vx<-.6&&dx<-35))return vote('nope');if(dy>110||(vy>.6&&dy>40&&Math.abs(dy)>Math.abs(dx)))return vote('skip');
-c.style.transition='transform .65s cubic-bezier(.34,1.45,.64,1)';c.style.transform='';dx=dy=0;show();if(mv<8)playTrack(t)}};
-flyOut=function(c,v){const k={like:[1,0],nope:[-1,0],skip:[0,1]}[v];c.classList.remove('dragging');c.style.transition='transform .45s cubic-bezier(.25,.8,.3,1),opacity .3s .08s';c.style.setProperty({like:'--ol',nope:'--on',skip:'--om'}[v],1);c.style.transform=`translate(${k[0]*(innerWidth+240)}px,${k[1]*innerHeight*.5}px) rotate(${k[0]*16}deg)`;c.style.opacity=0;$('#deck').style.setProperty('--p',1)};
+if(dx>110||(vx>.6&&dx>35))return vote('like');if(dx<-110||(vx<-.6&&dx<-35))return vote('nope');
+if(dy>110||(vy>.6&&dy>40&&Math.abs(dy)>Math.abs(dx)))return vote('skip');
+const up=dy<-110||(vy<-.6&&dy<-40&&Math.abs(dy)>Math.abs(dx));
+c.style.transition='transform .68s cubic-bezier(.32,1.28,.52,1)';c.style.transform='';dx=dy=0;show();if(!up&&mv<8)playTrack(t);
+if(up)openCard()}};
+flyOut=function(c,v){const k={like:[1,0],nope:[-1,0],skip:[0,1]}[v];c.classList.remove('dragging');c.style.transition='transform .62s cubic-bezier(.25,.7,.32,1),opacity .5s .06s';c.style.setProperty({like:'--ol',nope:'--on',skip:'--om'}[v],1);c.style.transform=`translate(${k[0]*(innerWidth+240)}px,${k[1]*innerHeight*.5}px) rotate(${k[0]*9}deg)`;c.style.opacity=0;$('#deck').style.setProperty('--p',1)};
+
+/* ---- swipe up: open that exact track in Spotify ---- */
+const SP_URI=new Map();
+function spotifyMatch(items,t){
+  const nt=norm(t.t),na=norm(t.a).split(',')[0].trim();let best=null,bs=-1;
+  (items||[]).forEach(function(x,i){
+    if(!x||!x.id)return;let sc=0;
+    const xn=norm(x.name);
+    if(xn===nt)sc+=3;else if(xn.indexOf(nt)>=0||nt.indexOf(xn)>=0)sc+=1.4;
+    const xa=norm(((x.artists||[])[0]||{}).name);
+    if(xa&&na&&(xa===na||xa.indexOf(na)>=0||na.indexOf(xa)>=0))sc+=2.2;
+    sc-=i*0.05;
+    if(sc>bs){bs=sc;best=x}
+  });
+  return best;
+}
+async function resolveSpotifyTrack(t){
+  const key=String(t.id);
+  if(t.spu)return t.spu;
+  if(SP_URI.has(key))return SP_URI.get(key);
+  if(!SP.connected())return null;
+  const q='track:'+t.t+' artist:'+String(t.a).split(',')[0];
+  const res=await SP.api('/search?type=track&limit=5&q='+encodeURIComponent(q));
+  const hit=spotifyMatch(res&&res.tracks&&res.tracks.items,t);
+  if(!hit)return null;
+  const uri='spotify:track:'+hit.id;
+  SP_URI.set(key,uri);t.spu=uri;
+  return uri;
+}
+function openOnSpotify(t){
+  if(!t)return;
+  /* remember it, so a refresh keeps this card on top for continuity */
+  try{S.up=summarize(t);save()}catch(e){}
+  const searchUrl='https://open.spotify.com/search/'+encodeURIComponent(t.t+' '+t.a);
+  toast(SP.connected()?'Opening in Spotify…':'Opening Spotify search…');
+  resolveSpotifyTrack(t).then(function(uri){
+    const url=uri?('https://open.spotify.com/track/'+uri.split(':').pop()):searchUrl;
+    try{window.open(url,'_blank','noopener')}catch(e){try{window.open(searchUrl,'_blank')}catch(_){}}
+  }).catch(function(){try{window.open(searchUrl,'_blank','noopener')}catch(e){}});
+}
+function openCard(){const t=DECK[0];if(!t)return;auto=true;openOnSpotify(t)}
+const _commitU=commit;commit=function(t,v,c){if(S.up&&String(S.up.id)===String(t.id)){S.up=null;try{save()}catch(e){}}_commitU.apply(this,arguments)};
 /* page transitions + sliding nav pill */
-const ORDER=['discover','foryou','moods','taste','game'],ind=document.createElement('i');ind.id='navInd';$('#nav').prepend(ind);
+const ORDER=['discover','foryou','moods','game','taste'],ind=document.createElement('i');ind.id='navInd';$('#nav').prepend(ind);
 let ix=0,iw=0,ih=0,ir=0,first=true;
 function moveInd(snap){cancelAnimationFrame(ir);const f=()=>{const b=$('#nav button.on');if(!b)return;const tx=b.offsetLeft,tw=b.offsetWidth,k=(first||snap===2)?1:.2;first=false;ix+=(tx-ix)*k;iw+=(tw-iw)*k;ind.style.transform=`translate(${ix}px,${b.offsetTop}px)`;ind.style.width=iw+'px';ind.style.height=b.offsetHeight+'px';if(Math.abs(tx-ix)>.4||Math.abs(tw-iw)>.4)ir=requestAnimationFrame(f);else{ix=tx;iw=tw}};f()}
 if(window.ResizeObserver)new ResizeObserver(()=>moveInd(2)).observe($('#nav'));
@@ -1349,7 +1537,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&SHEET.classList.contains('op
 gw.onpointermove=e=>{if(!on)return;dy=Math.max(0,e.clientY-sy);if(innerWidth<721)SP2.style.transform=`translateY(${dy}px)`};
 gw.onpointerup=gw.onpointercancel=()=>{if(!on)return;on=0;SP2.classList.remove('drag');if(dy>110)closeSheet();else SP2.style.transform=''}})();
 /* ---- page transitions (rewritten: leaving view is never re-toggled, so nothing restarts / flashes) ---- */
-const RENDER={foryou:()=>rForYou(),game:()=>rGame(),moods:()=>rMoods(),taste:()=>rTaste(),discover:()=>{rInsights();renderPill();if(auto&&DECK[0])playTrack(DECK[0],true)}};
+const RENDER={foryou:()=>rForYou(),game:()=>rGame(),moods:()=>rMoods(),taste:()=>rTaste(),discover:()=>{rInsights();renderPill();if(auto&&DECK[0]&&nowId==null)playTrack(DECK[0])}};
 go=function(v){if(!RENDER[v])v='discover';const old=$('.view.on:not(.leaving)'),nu=$('#v-'+v),pi=ORDER.indexOf(view),ni=ORDER.indexOf(v);
 $$('.view.leaving').forEach(e=>{e.getAnimations().forEach(a=>a.cancel());e.classList.remove('on','leaving')});
 if(view==='game'&&v!=='game')gStop();view=v;$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));audio.loop=v==='discover';
@@ -1376,7 +1564,7 @@ function claimDaily(){const k=dayKey();if(!S.daily||S.daily.claimed===k)return f
 const isDaily=t=>S.daily&&String(t.id)===String(S.daily.id)&&S.daily.date===dayKey();
 function dailyHTML(){const t=S.daily.t;reg(t);const m=matchOf(t),dn=dailyDone(),sk=streakNow(),days=[];for(let i=6;i>=0;i--){const k=dayKey(i),d=new Date(Date.now()-i*864e5);days.push(`<div><i class="${(S.streak.days||[]).includes(k)?'y':''} ${i===0?'td':''}" data-d="${k}"></i>${'SMTWTFS'[d.getDay()]}</div>`)}
 return `<div class="dhead"><span>${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</span><span class="dstreak">${FLAME}<b>${sk}</b> day streak</span></div>
-<div class="dcard" style="--sc:${m/100};--sh:${hueOf(m)}"><div class="glow"></div><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="tint"></div><div class="score"><b>${m}<sup>%</sup></b><small>taste match</small></div><div class="info"><span class="why">Today’s best fit</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div></div>
+<div class="dcard" style="--sc:${m/100};--sh:${hueOf(m)}"><div class="glow"></div><div class="face" style="background:linear-gradient(160deg,hsl(${hue(t)} 55% 35%),#1a1326)">${t.art?`<img src="${esc(artOf(t))}" alt="" draggable="false">`:''}<div class="tint"></div><div class="score"><b>${m}<sup>%</sup></b><small>taste match</small></div><div class="info"><span class="why">Today’s best fit</span><h2>${esc(t.t)}</h2><p>${esc(t.a)}</p><small>${esc(t.g||'')}${t.y?' · '+t.y:''}</small><div class="row2"><div class="wave" data-id="${t.id}">${wave(t,24)}</div><button class="pbtn" data-play="${t.id}" aria-label="Play">${IC.play}</button></div></div></div></div>
 <div class="week">${days.join('')}</div>
 <div class="rowb"><button class="btn" id="dFav" ${dn?'disabled':''}>${dn?'Streak counted':'Favourite it'}</button><button class="btn ghost" id="dSave">Save to Spotify</button></div>
 <p class="note">${dn?'Come back tomorrow for a new pick.':'Favourite or save today’s pick to keep your streak alive.'}</p>`}
@@ -1470,17 +1658,18 @@ const STEPS=[
 {t:'Swipe right to like',p:'Love it? Drag the card right. Every swipe teaches the app your taste.',sel:'#deck',sw:[1,0],pad:[8,90],card:1},
 {t:'Swipe left to dislike',p:'Not your thing? Drag it left. It won’t come back, and similar songs rank lower.',sel:'#deck',sw:[-1,0],pad:[8,90],card:1},
 {t:'Swipe down for mid',p:'Fine but forgettable? Drag down. It counts as a soft skip.',sel:'#deck',sw:[0,1],pad:[8,90],card:1},
+{t:'Swipe up to play it whole',p:'Want the full song, not just a preview? Drag the card up — Cadence opens that exact track in Spotify, and the card springs right back so you can judge it after.',sel:'#deck',sw:[0,-1],pad:[8,90],card:1},
 {t:'Tap to hear it',p:'This button plays a short preview. Tapping the card itself plays it too.',sel:'#deck .card:last-child .pbtn',card:1,round:1},
 {t:'Taste match',p:'How well the song fits you, from 0 to 100. It sharpens as you swipe.',sel:'#deck .card:last-child .score',card:1},
 {t:'Prefer buttons?',p:'Left to right: undo, dislike, like, mid, shuffle. Shuffle deals a fresh set of songs.',sel:'.dock'},
 {t:'Daily pick',p:'The flame is one song a day, chosen for you. Open it, then like or save to keep your streak. Once you have dealt with it, it tucks away into the corner until tomorrow.',sel:'#dpill'},
-{t:'Pages',p:'Swipe is home. For you ranks songs for you, Moods filter by vibe, Taste shows your profile, and Game — far right — is a daily mystery clip.',sel:'#nav'},
+{t:'Pages',p:'Swipe is home. For you ranks songs for you, Moods reads how you feel and builds a playlist, Game is a daily mystery clip, and Taste — far right — holds your profile and settings.',sel:'#nav'},
 {t:'You’re set',p:'Swipe a few songs and your deck starts to fit you. You can replay this from Taste.',last:1}
 ];
 let i=0,timers=[],active=false;
 const later=(f,ms)=>timers.push(setTimeout(f,ms));
 const topCard=()=>$('#deck .card:last-child');
-function reset(){timers.forEach(clearTimeout);timers=[];fin.classList.remove('go');fin.style.opacity=0;const c=topCard();if(c){c.style.transition='none';c.style.transform='';void c.offsetWidth;c.style.transition='';['--ol','--on','--om'].forEach(k=>c.style.removeProperty(k))}$('#deck').style.removeProperty('--p')}
+function reset(){timers.forEach(clearTimeout);timers=[];fin.classList.remove('go');fin.style.opacity=0;const c=topCard();if(c){c.style.transition='none';c.style.transform='';void c.offsetWidth;c.style.transition='';['--ol','--on','--om','--ou'].forEach(k=>c.style.removeProperty(k))}$('#deck').style.removeProperty('--p')}
 function rectOf(st){const e=st.sel&&$(st.sel);if(!e)return null;const r=e.getBoundingClientRect();return r.width&&r.height?r:null}
 function phantom(dir){
   const c=topCard();if(!c)return;const r=c.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height*.55,dx=dir[0]*86,dy=dir[1]*86;
@@ -1489,13 +1678,13 @@ function phantom(dir){
     fin.classList.remove('go');fin.style.transform=`translate(${cx}px,${cy}px)`;fin.style.opacity=1;
     later(()=>{
       fin.classList.add('go');fin.style.transform=`translate(${cx+dx}px,${cy+dy}px)`;
-      cc.style.transition='transform .8s cubic-bezier(.3,.8,.3,1)';cc.style.transform=`translate(${dx}px,${Math.max(dy,0)*.6}px) rotate(${dx/22}deg)`;
-      cc.style.setProperty('--ol',dir[0]>0?.8:0);cc.style.setProperty('--on',dir[0]<0?.8:0);cc.style.setProperty('--om',dir[1]>0?.8:0);
+      cc.style.transition='transform .8s cubic-bezier(.3,.8,.3,1)';cc.style.transform=`translate(${dx}px,${dy<0?dy:dy*.6}px) rotate(${dx/34}deg)`;
+      cc.style.setProperty('--ol',dir[0]>0?.8:0);cc.style.setProperty('--on',dir[0]<0?.8:0);cc.style.setProperty('--om',dir[1]>0?.8:0);cc.style.setProperty('--ou',dir[1]<0?.8:0);
       $('#deck').style.setProperty('--p',.5);
     },350);
     later(()=>{
-      fin.style.opacity=0;cc.style.transition='transform .65s cubic-bezier(.34,1.45,.64,1)';cc.style.transform='';
-      ['--ol','--on','--om'].forEach(k=>cc.style.setProperty(k,0));$('#deck').style.setProperty('--p',0);
+      fin.style.opacity=0;cc.style.transition='transform .68s cubic-bezier(.32,1.28,.52,1)';cc.style.transform='';
+      ['--ol','--on','--om','--ou'].forEach(k=>cc.style.setProperty(k,0));$('#deck').style.setProperty('--p',0);
     },1950);
     later(run,3100);
   };
@@ -1780,12 +1969,11 @@ Q('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
 /* haptics on chips and buttons in onboarding */
 Q('#obStep').addEventListener('click',e=>{if(e.target.closest('.chip'))tick(6);else if(e.target.closest('.btn'))tick(8)});
 
-/* audio: stop when the app is backgrounded, resume on return */
-let resume=false;
+/* audio: no background playback — stop as soon as the app leaves the foreground */
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){if(!audio.paused){resume=true;audio.pause();sync()}}
-  else if(resume){resume=false;audio.play().catch(()=>{});sync()}
+  if(document.hidden){ try{ if(!audio.paused){ audio.pause(); sync(); } }catch(e){} }
 });
+addEventListener('pagehide',()=>{ try{ audio.pause(); }catch(e){} });
 
 /* lock screen + notification controls, headset buttons */
 if('mediaSession' in navigator&&window.MediaMetadata){
@@ -1808,8 +1996,7 @@ if(STANDALONE){
     if(Q('#onboard').classList.contains('open')&&obStep>0){obStep--;rOb();return true}
     return false;
   };
-  try{history.replaceState({cadence:0},'')}catch(_){}
-  arm();
+  try{history.replaceState({cadence:0},'')}catch(_){}  arm();
   addEventListener('popstate',()=>{
     clearTimeout(armT);
     if(closeTop()){arm();return}
@@ -2065,7 +2252,7 @@ window.exportSnapshot=function(){try{const o=JSON.parse(JSON.stringify(S));delet
       if(cache.size>CAP){for(const k of cache.keys()){if(k!==id){cache.delete(k);break}}}
     }else{
       n.style.transition='none'; n.style.transform=''; n.style.opacity=''; n.classList.remove('dragging');
-      ['--ol','--on','--om'].forEach(k=>n.style.removeProperty(k));
+      ['--ol','--on','--om','--ou'].forEach(k=>n.style.removeProperty(k));
       try{
         const m=matchOf(t);
         n.style.setProperty('--sc',clamp(m/100)); n.style.setProperty('--sh',hueOf(m));
@@ -2090,7 +2277,7 @@ window.exportSnapshot=function(){try{const o=JSON.parse(JSON.stringify(S));delet
     else{
       const cs=el.children;
       if(hasWA&&cs.length===3)cs[0].animate([{opacity:0}],{duration:380,easing:'ease-out',fill:'backwards'});
-      if(auto&&view==='discover')playTrack(DECK[0],true);
+      if(auto&&view==='discover')ensurePlaying(DECK[0]);
     }
     if(window.__hydrateWave){try{window.__hydrateWave()}catch(e){}}
   };
@@ -2176,6 +2363,627 @@ window.__phase={div:phaseDivergence,conf:confidence,on:shiftOn};
 const _hud=hud; hud=function(){ _hud.apply(this,arguments); renderMeter(); };
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) renderMeter(); });
 renderMeter();
+})();
+</script>
+<script>
+/* ================= v12: continuity for the swiped-up card ================= */
+(function(){
+'use strict';
+try{
+  if(S.up && S.up.id){
+    const t=Object.assign({},S.up);
+    if(!t.f){ try{t.f=inferFeatures(t)}catch(e){} }
+    if(t.p){
+      reg(t);
+      DECK=DECK.filter(function(x){return String(x.id)!==String(t.id)});
+      DECK.unshift(t);
+      if(typeof renderDeck==='function')renderDeck();
+    }
+  }
+}catch(e){}
+})();
+</script>
+<script>
+/* ================= v13: mini player (continuity across tabs) ================= */
+(function(){
+'use strict';
+const Q=s=>document.querySelector(s);
+const art=Q('#miniArt'), play=Q('#miniPlay');
+
+/* play a track only if it isn't already the current one — never restart the music */
+function ensurePlaying(t){ if(!t||!t.p)return; if(nowId!=null&&String(nowId)===String(t.id))return; playTrack(t); }
+window.ensurePlaying=ensurePlaying;
+
+function renderMini(){
+  if(!art||!play)return;
+  const ob=Q('#onboard');
+  const show = view!=='discover' && nowId!=null && !(ob&&ob.classList.contains('open'));
+  if(show) document.body.dataset.mini='1'; else delete document.body.dataset.mini;
+  if(!show)return;
+  const t=T.get(String(nowId));
+  const u=(t&&t.art)?artOf(t):'';
+  art.style.backgroundImage = u?('url("'+u+'")'):'none';
+  art.innerHTML = u?'':IC.note;
+  const on = !audio.paused;
+  play.innerHTML = on?IC.pause:IC.play;
+  play.classList.toggle('on',on);
+  play.setAttribute('aria-label',on?'Pause':'Play');
+  play.setAttribute('aria-pressed',on?'true':'false');
+}
+window.__renderMini=renderMini;
+
+function togglePlay(){ if(nowId==null)return; try{ audio.paused?audio.play().catch(()=>{}):audio.pause(); }catch(e){} sync(); }
+if(art)art.onclick=()=>go('discover');
+if(play)play.onclick=togglePlay;
+
+/* keep it live: on playback changes, on tab changes, on onboarding */
+const _sync=sync; sync=function(){ _sync.apply(this,arguments); renderMini(); };
+const _go=go; go=function(v){ _go.apply(this,arguments); renderMini(); };
+if(typeof startOb==='function'){ const _so=startOb; startOb=function(){ _so.apply(this,arguments); renderMini(); }; }
+if(typeof finishOb==='function'){ const _fo=finishOb; finishOb=function(){ _fo.apply(this,arguments); renderMini(); }; }
+addEventListener('resize',renderMini);
+renderMini();
+})();
+</script>
+<script>
+/* ================= v14: Moods — a feeling, read without AI ================= */
+(function(){
+'use strict';
+const Q=s=>document.querySelector(s);
+const GTm={'Hip-Hop/Rap':'hip hop','R&B/Soul':'r&b','Alternative':'indie alternative','Dance':'dance','Electronic':'electronic','Rock':'rock','Pop':'pop','Jazz':'jazz','Folk':'folk acoustic','Classical':'classical piano','Latin':'latin','Country':'country','Metal':'metal','World':'world music'};
+
+/* ---- lexical mood engine: trigger phrases -> feature + genre + search terms ---- */
+/* ---- mood engine: lexicon + grammar rules (negation, intensifiers, "but", emoji, Hinglish) ---- */
+const MZ_LEX = [
+/* words | [e,v,a,d] | weight | label | keyword queries | anchor artists | genres */
+['sad down blue unhappy gloomy depressed hurting crying cry tears miserable sorrow grief grieving udaas dukhi rona',[.28,.18,.72,.28],1.4,'sad',['sad songs','tears'],['Billie Eilish','Phoebe Bridgers','Bon Iver','Adele'],['Alternative','Singer/Songwriter','Folk']],
+['heartbroken heartbreak breakup broke up dumped ex missing someone miss you miss judaai bewafa',[.36,.2,.6,.34],1.4,'heartbroken',['heartbreak','breakup','miss you'],['Olivia Rodrigo','Sam Smith','Lewis Capaldi','Taylor Swift'],['Pop','Singer/Songwriter']],
+['lonely alone isolated solitude solitary tanha tanhai akela',[.25,.25,.75,.25],1.3,'lonely',['alone','lonely'],['Radiohead','Lana Del Rey','Daughter','Bon Iver'],['Alternative','Indie','Folk']],
+['numb blank void hollow empty foggy dissociated detached',[.2,.3,.6,.25],1.3,'numb',['numb','hollow'],['Radiohead','Mazzy Star','Cigarettes After Sex','Lord Huron'],['Alternative','Indie']],
+['melancholy melancholic wistful bittersweet pensive reflective contemplative thoughtful introspective deep thoughts',[.3,.35,.68,.3],1.2,'wistful',['melancholy','bittersweet'],['Beach House','Cigarettes After Sex','The National','Lana Del Rey'],['Indie','Alternative']],
+['nostalgic nostalgia memories remember childhood throwback old days old times retro back then reminisce missing the old days yaadein',[.5,.6,.38,.5],1.2,'nostalgic',['throwback','memories'],['Fleetwood Mac','Coldplay','The Killers','Backstreet Boys'],['Pop','Rock','Alternative']],
+['happy joy joyful cheerful amazing wonderful fantastic glad upbeat bright sunny smiling smile delighted elated khush khushi',[.7,.9,.2,.75],1.3,'bright',['happy','good vibes','sunshine'],['Harry Styles','Dua Lipa','Pharrell Williams','Bruno Mars'],['Pop','Dance','Latin']],
+['good great fine nice lovely pretty good',[.55,.75,.35,.6],.8,'easy',['feel good','good day'],['Jack Johnson','Vampire Weekend','Bruno Mars','Harry Styles'],['Pop','Indie']],
+['light lighthearted carefree weightless free breezy',[.5,.8,.45,.55],1,'light',['carefree','light'],['Jack Johnson','Surfaces','Harry Styles','Vampire Weekend'],['Pop','Indie','Folk']],
+['excited hyped pumped thrilled stoked buzzing energetic electric wired amped fired up energized cant wait mast bindaas',[.9,.8,.1,.85],1.3,'hyped',['hype','pump up','energy'],['Dua Lipa','The Weeknd','Calvin Harris','Travis Scott'],['Dance','Pop','Hip-Hop/Rap','Electronic']],
+['calm peaceful serene relaxed relax tranquil at peace gentle soft quiet unwind mellow settled zen sukoon shaant',[.2,.55,.75,.25],1.2,'calm',['calm','peaceful','serene'],['Norah Jones','Bon Iver','Novo Amor','Ludovico Einaudi'],['Folk','Jazz','Classical','Indie']],
+['chill chilled lowkey low key laid back vibe vibes vibing easygoing lazy lounge slow',[.38,.62,.55,.55],.9,'laid-back',['chill','laid back'],['Tom Misch','Rex Orange County','Khruangbin','Jungle'],['R&B/Soul','Indie','Jazz']],
+['tired exhausted drained sleepy burnt burnout burned out fatigued worn spent weary drowsy thaka thakaan',[.2,.4,.7,.22],1.2,'worn out',['sleepy','tired'],['Cigarettes After Sex','Bon Iver','Sleeping At Last','Novo Amor'],['Folk','Classical','Indie']],
+['anxious anxiety nervous worried worry stressed stress overwhelmed panic tense uneasy restless overthinking overthink spiral spiraling on edge',[.4,.35,.6,.3],1.2,'on edge',['anxiety','breathe'],['Billie Eilish','Radiohead','Sleeping At Last','Hozier'],['Alternative','Singer/Songwriter']],
+['angry mad furious rage pissed irritated annoyed frustrated fed up livid bitter resentful aggressive gussa',[.92,.25,.1,.5],1.4,'fired up',['rage','angry'],['Linkin Park','Eminem','Rage Against The Machine','Kendrick Lamar'],['Rock','Hip-Hop/Rap','Metal','Punk']],
+['in love love loved crush romantic romance butterflies infatuated smitten falling for kiss cuddle cuddly intimate affection flirty flirt ishq pyaar pyar mohabbat',[.45,.78,.45,.55],1.3,'in love',['love songs','romance','crush'],['Ed Sheeran','Taylor Swift','Daniel Caesar','SZA'],['Pop','R&B/Soul','Singer/Songwriter']],
+['sexy seductive sensual steamy slow jam',[.5,.6,.3,.7],1.2,'sensual',['slow jam','sensual'],['The Weeknd','SZA','Frank Ocean','Jhene Aiko'],['R&B/Soul']],
+['hopeful hope optimistic new beginnings fresh start healing recovering better brighter growth moving on proud',[.55,.72,.5,.5],1.1,'hopeful',['hope','new day','fresh start'],['Coldplay','Florence + The Machine','Lizzo','OneRepublic'],['Pop','Alternative']],
+['grateful thankful blessed appreciate warm warmth cozy cosy comfy comfort homey snug hug wholesome tender',[.3,.7,.7,.35],1.1,'warm',['cozy','warm','comfort'],['Jack Johnson','Norah Jones','Ben Howard','Hozier'],['Folk','Singer/Songwriter','Jazz']],
+['confident powerful boss unstoppable main character strong fearless bold badass savage swagger flex slay iconic hot girl',[.82,.72,.1,.82],1.2,'bold',['confidence','boss','power'],['Beyonce','Lizzo','Kendrick Lamar','Doja Cat'],['Hip-Hop/Rap','Pop','R&B/Soul']],
+['bored boredom meh whatever idle dull blah unmotivated nothing to do bekaar',[.4,.4,.4,.45],.8,'meh',['bored','meh'],['Arctic Monkeys','Tame Impala','Mac DeMarco','Vampire Weekend'],['Indie','Alternative']],
+['dreamy dream dreaming floaty floating hazy haze ethereal surreal spacey drift drifting cloudy airy cosmic trippy psychedelic sapna sapne',[.35,.55,.5,.4],1.1,'dreamy',['dream pop','ethereal'],['Tame Impala','Beach House','Cocteau Twins','Bon Iver'],['Indie','Alternative','Electronic']],
+['fun playful silly goofy quirky giddy whimsical mischievous cheeky',[.65,.82,.3,.72],1,'playful',['fun','playful'],['Vampire Weekend','Harry Styles','MGMT','Dua Lipa'],['Pop','Indie','Dance']],
+['focus focused concentrate concentration studying study homework exam exams deadline working coding programming deep work productive productivity grind writing reading library assignment',[.35,.5,.6,.38],1.2,'focused',['focus','study','instrumental'],['Ludovico Einaudi','Nujabes','Tycho','Hans Zimmer'],['Classical','Electronic','Soundtrack','Jazz']],
+['workout gym lifting training running cardio sprint exercise pushups beast athletic hiit',[.92,.62,.06,.82],1.3,'driven',['workout','gym','pump up'],['Eminem','Kanye West','David Guetta','Imagine Dragons'],['Hip-Hop/Rap','Dance','Rock','Electronic']],
+['party partying club clubbing dance dancing rave afterparty pregame pre game drunk drinks celebrate celebration birthday festival banger bangers lit turn up getting ready',[.88,.85,.05,.9],1.3,'party',['party','club','dance'],['Calvin Harris','Dua Lipa','Bad Bunny','Lady Gaga'],['Dance','Pop','Latin','Electronic']],
+['road trip roadtrip drive driving highway windows down car cruising cruise journey travel travelling adventure explore safar',[.65,.7,.3,.58],1,'on the road',['road trip','highway'],['Fleetwood Mac','The Killers','Tom Petty','Bruce Springsteen'],['Rock','Pop','Country','Alternative']],
+['night drive midnight drive late night drive',[.55,.5,.2,.6],1.4,'neon',['night drive','midnight','neon'],['The Weeknd','Kavinsky','Tame Impala','Drake'],['Electronic','R&B/Soul','Alternative']],
+['rain rainy raining drizzle storm thunder wet puddles downpour monsoon barish baarish',[.28,.35,.68,.3],1.2,'rainy',['rain','rainy day'],['Bon Iver','Radiohead','Billie Eilish','Lord Huron'],['Alternative','Folk','Indie']],
+['window windowsill balcony terrace',[.3,.5,.65,.3],.6,'quiet',['window','balcony'],['Phoebe Bridges','Bon Iver','Norah Jones','Novo Amor'],['Folk','Indie']],
+['night midnight 3am 2am 4am 1am nighttime insomnia awake moonlight moon stars starry dark after dark late night raat',[.35,.42,.45,.45],1,'late-night',['midnight','late night','after dark'],['The Weeknd','Frank Ocean','Cigarettes After Sex','Bon Iver'],['R&B/Soul','Alternative','Electronic']],
+['cant sleep sleepless tossing and turning',[.22,.35,.6,.25],1.3,'restless',['cant sleep','insomnia'],['Cigarettes After Sex','Daughter','Bon Iver','Sleeping At Last'],['Indie','Alternative','Folk']],
+['morning sunrise dawn wake up woke up breakfast sunday morning fresh brunch',[.45,.72,.6,.45],1,'fresh',['good morning','sunrise'],['Jack Johnson','Vampire Weekend','Sufjan Stevens','Norah Jones'],['Folk','Indie','Pop','Jazz']],
+['coffee cafe coffee shop latte espresso chai tapri',[.38,.65,.62,.42],.9,'cafe',['coffee','cafe jazz'],['Norah Jones','Chet Baker','Diana Krall','Jack Johnson'],['Jazz','Folk','Singer/Songwriter']],
+['sunset golden hour evening dusk twilight magic hour sundown',[.42,.65,.55,.45],1.1,'golden',['golden hour','sunset'],['Harry Styles','Lord Huron','Fleetwood Mac','Khruangbin'],['Indie','Pop','Rock']],
+['beach ocean sea waves surf island tropical shore coast seaside summer holiday vacation vacay poolside pool',[.55,.85,.4,.65],1.1,'sun-soaked',['summer','beach','tropical'],['Jack Johnson','Kygo','Surfaces','Bob Marley'],['Reggae','Pop','Dance','Latin']],
+['forest woods trees mountain mountains hike hiking nature camping campfire bonfire trek trail cabin lake river valley wilderness outdoors',[.32,.6,.85,.3],1.1,'earthy',['forest','mountain','campfire'],['Bon Iver','Fleet Foxes','Ben Howard','Lord Huron'],['Folk','Indie','Country']],
+['snow winter cold frost snowing fireplace christmas blanket sweater hot chocolate',[.28,.62,.7,.3],1.1,'wintry',['winter','snow'],['Bon Iver','Sufjan Stevens','Ludovico Einaudi','Sleeping At Last'],['Folk','Classical','Indie']],
+['city city lights skyline neon urban downtown streets street rooftop subway metro taxi traffic rush hour concrete skyscraper marine drive mumbai',[.6,.5,.2,.65],1,'urban',['city lights','downtown'],['Drake','The Weeknd','Frank Ocean','Travis Scott'],['Hip-Hop/Rap','R&B/Soul','Electronic']],
+['train flight flying airport plane commute bus local train transit',[.4,.5,.45,.4],.8,'in transit',['train','flight','commute'],['Coldplay','Lord Huron','Passenger','Tycho'],['Indie','Alternative']],
+['walk walking stroll wander wandering',[.45,.62,.55,.45],.8,'wandering',['walking','stroll'],['Vampire Weekend','Jack Johnson','Tame Impala','Phoebe Bridgers'],['Indie','Folk']],
+['cooking kitchen cleaning chores laundry baking dishes tidying gardening plants sunday lazy sunday weekend home homebody pajamas pyjamas couch sofa netflix movie rewatch ghar',[.42,.68,.5,.5],.9,'homey',['sunday morning','kitchen'],['Stevie Wonder','Norah Jones','Jack Johnson','Carole King'],['Pop','Jazz','R&B/Soul','Folk']],
+['friends friend squad crew hangout gathering bbq picnic together roommates dosti',[.65,.8,.3,.65],1,'social',['friends','good times'],['Mac Miller','Vampire Weekend','Bruno Mars','The Killers'],['Pop','Hip-Hop/Rap','Indie']],
+['sleep bed bedtime lullaby rest resting nap napping wind down winding down goodnight',[.15,.48,.8,.2],1.3,'drowsy',['sleep','lullaby','ambient'],['Max Richter','Sleeping At Last','Brian Eno','Ludovico Einaudi'],['Classical','Electronic','Folk']],
+['gaming gamer',[.7,.6,.25,.6],1,'locked in',['video game music','gaming'],['Daft Punk','Porter Robinson','Hans Zimmer'],['Electronic','Soundtrack']],
+['epic cinematic dramatic grand triumphant victory win won championship climax',[.72,.62,.35,.4],1.1,'cinematic',['epic','cinematic','triumph'],['Hans Zimmer','Two Steps From Hell','Imagine Dragons','Linkin Park'],['Soundtrack','Rock','Classical']],
+['mysterious dark academia gothic moody brooding eerie haunting spooky shadows noir',[.4,.25,.55,.35],1.1,'brooding',['dark','moody','haunting'],['Billie Eilish','Hozier','The Neighbourhood','Lana Del Rey'],['Alternative','R&B/Soul','Electronic']],
+['weird strange odd confused lost uncertain unsure mixed complicated conflicted torn',[.4,.4,.5,.4],.9,'unsettled',['confused','lost'],['Radiohead','Phoebe Bridgers','Mitski','Tame Impala'],['Alternative','Indie']],
+['spiritual meditation meditate yoga prayer devotional mindful mindfulness breathe breathing',[.2,.6,.8,.2],1.2,'mindful',['meditation','yoga'],['Ludovico Einaudi','Deva Premal','Nils Frahm','Brian Eno'],['Classical','World','Electronic']],
+['romantic dinner candlelit jazz wine dinner elegant classy sophisticated fancy',[.35,.62,.7,.45],1,'smooth',['jazz','dinner jazz'],['Frank Sinatra','Norah Jones','Miles Davis','Nina Simone'],['Jazz','Vocal','R&B/Soul']],
+['rock metal punk headbang mosh guitar loud heavy rebellious rebel',[.9,.4,.2,.45],1.1,'loud',['rock','loud guitar'],['Foo Fighters','Arctic Monkeys','Green Day','Linkin Park'],['Rock','Metal','Punk']],
+['hip hop rap trap bars cypher',[.7,.55,.1,.8],1.3,'bars',['hip hop','rap'],['Kendrick Lamar','J. Cole','Drake','Tyler, The Creator'],['Hip-Hop/Rap']],
+['lofi lo fi beats',[.3,.5,.65,.45],1.3,'lo-fi',['lofi beats','chillhop'],['Nujabes','Joji','Jinsang','Tomppabeats'],['Hip-Hop/Rap','Electronic','Jazz']],
+['acoustic unplugged',[.35,.55,.92,.3],1.2,'acoustic',['acoustic','unplugged'],['Ed Sheeran','Passenger','Jack Johnson','Ben Howard'],['Folk','Singer/Songwriter']],
+['edm house techno trance',[.88,.7,.04,.9],1.3,'electric',['edm','house music'],['Avicii','Swedish House Mafia','Martin Garrix','Kygo'],['Dance','Electronic']],
+['piano classical orchestra orchestral strings instrumental',[.28,.5,.95,.2],1.2,'orchestral',['piano','orchestral'],['Ludovico Einaudi','Yiruma','Max Richter','Hans Zimmer'],['Classical','Soundtrack']],
+['country cowboy truck',[.55,.65,.6,.5],1.1,'country',['country','heartland'],['Luke Combs','Zach Bryan','Chris Stapleton','Kacey Musgraves'],['Country']],
+['reggaeton latin salsa bachata spanish',[.8,.82,.2,.85],1.2,'latin',['reggaeton','latin hits'],['Bad Bunny','Karol G','J Balvin','Shakira'],['Latin']],
+['bollywood hindi desi punjabi filmy',[.6,.65,.4,.6],1,'desi',['bollywood','hindi songs'],['Arijit Singh','Pritam','A.R. Rahman','Diljit Dosanjh'],['World']]
+];
+
+/* Hinglish / India-context words nudge the search toward desi artists */
+const MZ_IN = {dil:1.2,yaar:1,ishq:1.2,pyaar:1.2,pyar:1.2,barish:1.2,baarish:1.2,raat:1,mausam:1.2,udaas:1.2,sukoon:1.2,tanha:1.2,tanhai:1.2,zindagi:1.2,safar:1,khushi:1.2,bindaas:1.2,bohot:1,bahut:1,thoda:1,sapna:1,sapne:1,bollywood:1.5,hindi:1.5,desi:1.5,punjabi:1.5,arijit:1.5,ghar:.9,chai:.6,tapri:1,monsoon:.5,mumbai:.7,'marine drive':1,'local train':.8,dosti:1,yaadein:1.2,mohabbat:1.2,judaai:1.2,gussa:1.2,thaka:1.2,akela:1.2,mast:1};
+const MZ_IN_ARTISTS = {
+  low: ['Anuv Jain','Prateek Kuhad','Arijit Singh','Jubin Nautiyal'],
+  mid: ['Pritam','Amit Trivedi','Ritviz','A.R. Rahman'],
+  love:['Arijit Singh','Atif Aslam','Shreya Ghoshal','Darshan Raval'],
+  high:['Badshah','Diljit Dosanjh','AP Dhillon','Honey Singh']
+};
+const MZ_INTENS = new Set('so really very super extremely totally completely deeply incredibly insanely too absolutely fully utterly hella seriously more proper properly mad'.split(' '));
+const MZ_DIMIN  = new Set('kinda sorta slightly little somewhat semi bit mildly almost barely less tiny'.split(' '));
+const MZ_NEG    = new Set('not no dont doesnt isnt arent wasnt aint never hardly without nahi nahin na'.split(' '));
+const MZ_BUT    = new Set('but though although however yet except still'.split(' '));
+const MZ_VAGUE  = new Set('idk dunno whatever something anything random surprise anyone no idea'.split(' '));
+const MZ_STOP   = new Set('i im ive id me my myself am is are was be been being feel feeling feels felt like just today right now it its it s a an the and or of to in on at for with this that these those there here as so what whats how really kind sort kinda sorta bit get getting got gonna want wanna need would could should maybe probably guess think thinking'.split(' '));
+const MZ_EMOJI = {'😭':'sad','😢':'sad','🥺':'lonely','💔':'heartbroken','😞':'sad','😔':'sad','😊':'happy','😄':'happy','😁':'happy','🥰':'love','😍':'love','❤️':'love','💕':'love','☀️':'sunny','🌞':'sunny','😴':'tired','🥱':'tired','🔥':'hyped','🤩':'excited','😡':'angry','🤬':'angry','😤':'frustrated','🌧️':'rain','☔':'rain','🌙':'night','🌃':'city','🌊':'ocean','🏖️':'beach','🎉':'party','💃':'dancing','🕺':'dancing','☕':'coffee','📚':'study','💪':'workout','🏋️':'gym','🚗':'drive','😌':'calm','🧘':'meditation','😰':'anxious','😬':'nervous','🥹':'grateful','✨':'dreamy','🌅':'sunset','🌄':'sunrise','❄️':'snow','🌲':'forest','😎':'confident'};
+
+/* their genre names normalised onto the app's vocabulary */
+const MZ_G={'Singer/Songwriter':'Folk','Reggae':'World','Vocal':'Jazz'};
+function mzGenre(g){return MZ_G[g]||g}
+/* index every unigram plus the contiguous bigrams/trigrams each row contains */
+const MZ_IDX=new Map();
+(function(){
+  MZ_LEX.forEach(function(row,i){
+    const w=String(row[0]).split(' ').filter(Boolean);
+    const add=function(p){const a=MZ_IDX.get(p);if(a)a.push(i);else MZ_IDX.set(p,[i])};
+    for(let n=1;n<=3;n++)for(let j=0;j+n<=w.length;j++){const p=w.slice(j,j+n).join(' ');
+      /* never index a lone function word pulled out of a phrase like "falling for" */
+      if(n===1&&(MZ_STOP.has(p)||p.length<3))continue;
+      add(p);}
+  });
+})();
+function mzToks(x){
+  let raw=String(x||''),emo=[];
+  for(const k in MZ_EMOJI){ if(raw.indexOf(k)>=0){ emo.push(MZ_EMOJI[k]); raw=raw.split(k).join(' '); } }
+  let t=norm(raw);
+  t=t.replace(/\b(can|don|doesn|didn|isn|aren|wasn|weren|won|wouldn|shouldn|couldn|ain)\s+t\b/g,'$1t');
+  const toks=t.split(' ').filter(Boolean);
+  emo.forEach(function(e){ norm(e).split(' ').forEach(function(w){ if(w)toks.push(w) }); });
+  return toks;
+}
+function parseMood(text){
+  const raw=String(text||'').trim(),toks=mzToks(raw);
+  let butIdx=-1,vague=false,desi=0;
+  toks.forEach(function(x,i){ if(MZ_BUT.has(x))butIdx=i; if(MZ_VAGUE.has(x))vague=true; if(MZ_IN[x])desi+=MZ_IN[x]; });
+  const w=new Array(MZ_LEX.length).fill(0),used=new Array(toks.length).fill(false);
+  for(let n=3;n>=1;n--){
+    for(let i=0;i+n<=toks.length;i++){
+      let skip=false;for(let k=0;k<n;k++)if(used[i+k])skip=true;
+      if(skip)continue;
+      const idx=MZ_IDX.get(toks.slice(i,i+n).join(' '));if(!idx)continue;
+      if(MZ_NEG.has(toks[i-1])||MZ_NEG.has(toks[i-2])){for(let k=0;k<n;k++)used[i+k]=true;continue;}
+      let mult=1;
+      if(MZ_INTENS.has(toks[i-1])||MZ_INTENS.has(toks[i-2]))mult=1.5;
+      if(MZ_DIMIN.has(toks[i-1])||MZ_DIMIN.has(toks[i-2]))mult=.6;
+      if(butIdx>=0&&i>butIdx)mult*=1.4;
+      idx.forEach(function(ri){w[ri]+=MZ_LEX[ri][2]*mult});
+      for(let k=0;k<n;k++)used[i+k]=true;
+    }
+  }
+  let W=0,E=0,V=0,A=0,D=0,era=null;
+  const genre={},tags=[],queries=[],artists=[];
+  w.forEach(function(ww,ri){
+    if(ww<=0)return;const row=MZ_LEX[ri];
+    W+=ww;E+=row[1][0]*ww;V+=row[1][1]*ww;A+=row[1][2]*ww;D+=row[1][3]*ww;
+    if(row[3])tags.push(row[3]);
+    (row[4]||[]).forEach(function(q){queries.push(q)});
+    (row[5]||[]).forEach(function(a){artists.push(a)});
+    (row[6]||[]).forEach(function(g){const gg=mzGenre(g);genre[gg]=(genre[gg]||0)+ww});
+  });
+  if(desi>0)genre['World']=(genre['World']||0)+desi*1.4;
+  let M;
+  if(W)M={e:E/W,v:V/W,a:A/W,d:D/W};
+  else{const f=S.feat;M={e:.5+(f.energy-.5)*.35,v:.5+(f.valence-.5)*.35,a:.5+(f.acousticness-.5)*.35,d:.5+(f.danceability-.5)*.35};tags.push('your usual');}
+  if(toks.includes('80s')||toks.includes('eighties'))era=1985;
+  else if(toks.includes('90s')||toks.includes('nineties'))era=1995;
+  else if(toks.includes('70s')||toks.includes('seventies'))era=1975;
+  else if(toks.includes('2000s')||toks.includes('y2k'))era=2005;
+  M.genre=genre;M.era=era;M.raw=raw;M.vague=vague;M.desi=desi>0;
+  M.tags=[...new Set(tags)].slice(0,5);
+  M.artists=[...new Set(artists)].slice(0,6);
+  const inA=M.desi?(M.e>.7?MZ_IN_ARTISTS.high:M.e<.36?MZ_IN_ARTISTS.low:MZ_IN_ARTISTS.mid):[];
+  M.queries=[...new Set(queries)].slice(0,4);
+  /* Deliberately NOT the sentence the user typed. Searching "I am sad" or "Sunset"
+     just returns songs that are literally called that. Seed from the mood's own scene
+     phrases and the artists the lexicon associates with it instead. */
+  M.terms=[...new Set(M.queries.concat(M.artists.slice(0,2)).concat(inA))].filter(Boolean).slice(0,6);
+  M.energyWord=M.e<.36?'low-key':M.e<.62?'mid-tempo':'high-energy';
+  M.valenceWord=M.v<.36?'moody':M.v<.62?'balanced':'bright';
+  return M;
+}
+/* ---- what a mood playlist should never contain ---- */
+const JUNK_G=/(comedy|novelty|karaoke|spoken|sound effect|animation|kids|children|cover version)/i;
+const REG_G=/(indian|bollywood|hindi|filmi|punjabi|bhangra|tamil|telugu|desi|ghazal|sufi|devotional|bhajan|qawwali|regional|carnatic|hindustani)/i;
+const INDIC=/[\u0900-\u097F\u0980-\u09FF\u0A00-\u0A7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]/;
+const MEME=/(meme|parody|prank|funny|joke|remix|dj |whatsapp|status|tiktok|bhojpuri|comedy)/i;
+/* romanised Hindi/regional words — "Tu Toh Fir Se Buddha Ho Gaya" is latin-script, so the
+   script test cannot see it. Two or more distinct markers means it is not English. */
+const RH=/(^|\s)(tu|tum|hum|mera|tera|mere|tere|mujhe|tujhe|yaar|dil|pyaar|pyar|ishq|mohabbat|zindagi|jaan|saath|baat|hai|hain|nahi|nahin|kya|kyun|kaise|kaun|waqt|mausam|duniya|sapna|sapne|khushi|gham|ansu|aansu|bewafa|judaai|tanha|yaad|yaadein|baarish|barish|rang|chehra|naina|aankhen|dhadkan|jahan|gaya|gayi|gaye|raha|rahi|rahe|toh|bhi|aur|mein|naach|gaana|dhun|sanam|jaana|sajna|mehboob|armaan|intezaar|tadap|dard|deewana|pagal|buddha)(\s|$)/gi;
+function romanHindi(x){const m=String(x||'').match(RH);if(!m)return 0;const u=new Set();m.forEach(function(w){u.add(w.trim().toLowerCase())});return u.size}
+function junkTrack(t,allowReg){
+  const pg=t.pg||'';
+  if(JUNK_G.test(pg))return true;
+  if(INDIC.test(t.t+t.a))return true;
+  if(MEME.test(t.t))return true;
+  if(!allowReg&&REG_G.test(pg))return true;
+  if(!allowReg&&romanHindi(t.t)>=2)return true;
+  return false;
+}
+window.__junkTrack=junkTrack;
+/* a track whose title *is* what the user typed is an echo, not a recommendation */
+function literalEcho(t,raw){
+  const nt=norm(t.t),nr=norm(raw);
+  if(!nt||!nr)return false;
+  if(nt===nr)return true;
+  return nt.length>=6&&nr.indexOf(nt)>=0;
+}
+function moodFitOf(t,M){
+  const f=t.f||inferFeatures(t);
+  const d=Math.abs(f.energy-M.e)+Math.abs(f.valence-M.v)+Math.abs(f.acousticness-M.a)+Math.abs(f.danceability-M.d);
+  return clamp(1-d/4*1.25);
+}
+function moodMatch(t,M){
+  const f=t.f||inferFeatures(t);
+  const d=Math.abs(f.energy-M.e)+Math.abs(f.valence-M.v)+Math.abs(f.acousticness-M.a)+Math.abs(f.danceability-M.d);
+  const moodFit=clamp(1-d/4*1.25);
+  const gmax=Math.max(1e-6,...Object.values(M.genre),.0001);
+  const genreFit=M.genre[t.g]?clamp((M.genre[t.g]/gmax)*.8+.2):.2;
+  const tasteFit=scoreTrack(t);
+  const eraFit=(M.era&&t.y)?Math.exp(-Math.abs(t.y-M.era)/12):.5;
+  let anchor=0;
+  if(M.artists&&M.artists.length){const na=norm(t.a);for(let i=0;i<M.artists.length;i++){const k=norm(M.artists[i]).split(' ')[0];if(k&&na.indexOf(k)>=0){anchor=.1;break}}}
+  /* taste now outweighs the raw mood distance, so the playlist is *yours* and merely
+     shaped by the mood, rather than generic mood wallpaper */
+  let s=.36*moodFit+.15*genreFit+.30*tasteFit+.09*eraFit+anchor;
+  if(literalEcho(t,M.raw))s-=.3;
+  if(MEME.test(t.t))s-=.25;
+  return s;
+}
+async function buildMoodPlaylist(text){
+  const M=parseMood(text);
+  const allowReg=M.desi||((S.genre['World']||0)>2);
+  /* seed from: the mood's scene phrases, the artists the lexicon ties to that mood, and
+     the user's own top artists — never from a bare genre word, which returns noise */
+  const topA=Object.values(S.artist).filter(function(x){return x.score>0}).sort(function(a,b){return b.score-a.score}).slice(0,2).map(function(x){return x.name});
+  const seeds=[...new Set(M.queries.concat(M.artists.slice(0,2)).concat(topA))].slice(0,6);
+  if(!seeds.length)seeds.push('easy listening','chill');
+  await Promise.race([seedPool(seeds).catch(function(){return 0}),new Promise(function(r){setTimeout(r,4200)})]);
+  const all=POOL.concat(SEED.map(function(x){return Object.assign({},x,{f:inferFeatures(x)})}));
+  const seen=new Set(),cands=[];
+  all.forEach(function(t){
+    if(!t||!t.p)return;
+    if(junkTrack(t,allowReg))return;
+    if(literalEcho(t,M.raw))return;
+    if(moodFitOf(t,M)<0.32)return;           /* plainly the wrong mood — never pad with it */
+    if(seen.has(String(t.id)))return;
+    seen.add(String(t.id));cands.push(t);
+  });
+  const ranked=cands.map(function(t){return {t:t,s:moodMatch(t,M)+(S.seen.includes(t.id)?-.06:0)}}).sort(function(a,b){return b.s-a.s});
+  const out=[],titles=new Set(),cnt={};
+  for(let i=0;i<ranked.length&&out.length<16;i++){
+    const x=ranked[i],nt=norm(x.t.t),ak=norm(x.t.a).split(',')[0];
+    if(titles.has(nt))continue;              /* no three songs called the same thing */
+    if((cnt[ak]||0)>=2)continue;             /* at most two per artist */
+    titles.add(nt);cnt[ak]=(cnt[ak]||0)+1;out.push(x);
+  }
+  /* keep only tracks that are genuinely near the mood, but never hand back a stub */
+  const best=out.length?out[0].s:0;
+  let sel=out.filter(function(x){return x.s>=best*0.70});
+  if(sel.length<6)sel=out.filter(function(x){return x.s>=best*0.55});
+  if(sel.length<4)sel=out.filter(function(x){return x.s>=best*0.42});
+  if(sel.length<3)sel=out;
+  return {M:M,tracks:sel.slice(0,14).map(function(x){return x.t})};
+}
+
+/* ---- the page ---- */
+const MOOD_Q=['How are you feeling today?','What’s the mood like?','Life feels light today, right?','Describe the air around you.','Where is your head at right now?','Set the scene — I’ll find the sound.','What does today sound like?','Heavy, light, or somewhere between?','Tell me the colour of your mood.','What’s playing in your head?'];
+const SPARKS=['rainy evening','gym','heartbreak','focus','summer drive','late night','cozy sunday','road trip'];
+let moodState={text:'',M:null,tracks:[],token:0,fresh:false},qIdx=-1;
+function nextQuestion(){
+  if(MOOD_Q.length<2)return;
+  let n=qIdx;while(n===qIdx)n=Math.floor(Math.random()*MOOD_Q.length);
+  qIdx=n;const el=Q('#moodQ');if(!el)return;
+  el.textContent=MOOD_Q[n];el.classList.remove('qin');void el.offsetWidth;el.classList.add('qin');
+}
+function paintTiles(animate){
+  const list=Q('#moodList2');if(!list)return;
+  const tracks=moodState.tracks.slice(),tok=++moodState.token;
+  list.innerHTML='';
+  if(!animate){tracks.forEach(function(t){const d=document.createElement('div');d.innerHTML=rowHTML(t);if(d.firstElementChild)list.appendChild(d.firstElementChild)});sync();return;}
+  const step=Math.max(52,100-tracks.length*3);
+  tracks.forEach(function(t,i){
+    setTimeout(function(){
+      if(tok!==moodState.token)return;
+      const d=document.createElement('div');d.innerHTML=rowHTML(t);
+      const node=d.firstElementChild;if(!node)return;
+      node.classList.add('moodin');list.appendChild(node);sync();
+    },80+i*step);
+  });
+}
+function wireMoodResult(){
+  const sv=Q('#savePl');
+  if(sv)sv.onclick=function(){savePlaylist((moodState.M&&moodState.M.tags[0])||'mood',moodState.tracks)};
+  const ag=Q('#moodAgain');
+  if(ag)ag.onclick=function(){
+    moodState={text:'',M:null,tracks:[],token:moodState.token+1,fresh:false};
+    const sc=Q('#moodScroll');if(sc)sc.classList.remove('hasres');
+    const i=Q('#moodInput');if(i)i.value='';
+    nextQuestion();rMoods();
+  };
+}
+async function submitMood(text){
+  text=String(text||'').trim();if(!text)return;
+  const input=Q('#moodInput');if(input){input.value=text;input.blur()}
+  const scroll=Q('#moodScroll'),res=Q('#moodRes'),q=Q('#moodQ'),sub=Q('#moodSub'),sparks=Q('#moodSparks');
+  scroll.classList.add('hasres');
+  q.textContent='\u201c'+text+'\u201d';sub.textContent='';sparks.innerHTML='';
+  res.innerHTML='<div class="mtags"><span class="mtag read">reading the mood\u2026</span></div><div class="mload"><i></i><i></i><i></i></div>';
+  const built=await buildMoodPlaylist(text);
+  moodState={text:text,M:built.M,tracks:built.tracks,token:moodState.token+1,fresh:true};
+  rMoods();
+}
+rMoods=function(){
+  const scroll=Q('#moodScroll');if(!scroll)return;
+  const res=Q('#moodRes'),q=Q('#moodQ'),sub=Q('#moodSub'),sparks=Q('#moodSparks');
+  const has=moodState.tracks.length>0;
+  scroll.classList.toggle('hasres',has);
+  if(!has){
+    if(!q.textContent)nextQuestion();
+    sub.textContent='Type what you feel, Cadence does the rest.';
+    sparks.innerHTML=SPARKS.map(function(x){return '<button type="button" class="chip spark" data-spark="'+esc(x)+'">'+esc(x)+'</button>'}).join('');
+    res.innerHTML='';
+    return;
+  }
+  q.textContent='“'+moodState.text+'”';
+  sub.textContent='';sparks.innerHTML='';
+  const M=moodState.M;
+  res.innerHTML='<div class="mtags"><span class="mtag read">'+esc(M.energyWord)+' · '+esc(M.valenceWord)+'</span>'
+    +M.tags.map(function(x){return '<span class="mtag">'+esc(x)+'</span>'}).join('')+'</div>'
+    +'<div class="mrow"><button class="btn" id="savePl">Save playlist to Spotify</button><button class="btn ghost" id="moodAgain">Another mood</button></div>'
+    +'<div class="list" id="moodList2"></div>';
+  wireMoodResult();
+  paintTiles(moodState.fresh);moodState.fresh=false;
+};
+
+/* go button icon + form + sparks */
+;(function(){
+  const go=Q('#moodGo');if(go)go.innerHTML=sv('<path d="M5 12h13M13 6l6 6-6 6"/>');
+  const bar=Q('#moodBar');
+  if(bar)bar.addEventListener('submit',function(e){e.preventDefault();submitMood((Q('#moodInput')||{}).value)});
+  const v=Q('#v-moods');
+  if(v)v.addEventListener('click',function(e){
+    const sp=e.target.closest('[data-spark]');if(!sp)return;
+    e.preventDefault();e.stopPropagation();
+    const inp=Q('#moodInput');if(inp)inp.value=sp.dataset.spark;
+    submitMood(sp.dataset.spark);
+  });
+})();
+setInterval(function(){if(view==='moods'&&!moodState.tracks.length&&!document.hidden)nextQuestion()},9000);
+window.__moodParse=parseMood;
+
+/* ---- the wave: a vague colour waveform rising from below ---- */
+;(function(){
+  const cv=Q('#moodWave');if(!cv)return;
+  const ctx=cv.getContext('2d');if(!ctx)return;
+  const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const COLS=[[124,92,255],[176,84,214],[255,96,150],[86,180,255],[255,168,120]];
+  let raf=0,run=false,t=0,W=2,H=2;
+  let GC=null,sized=false;
+  function resize(){
+    const r=cv.getBoundingClientRect();
+    if(!r.width||!r.height)return false;
+    const w=Math.max(2,Math.round(r.width*.34)),h=Math.max(2,Math.round(r.height*.34));
+    if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;GC=null}
+    sized=true;return true;
+  }
+  function grads(){
+    if(GC&&GC.W===W&&GC.H===H)return GC.list;
+    const list=COLS.map(function(c,l){
+      const base=H*(.42+l*.11),amp=H*(.13+l*.038);
+      const g=ctx.createLinearGradient(0,base-amp,0,H);
+      g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+      g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',.22)');
+      return g;
+    });
+    GC={W:W,H:H,list:list};
+    return list;
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter';
+    const G=grads();
+    for(let l=0;l<COLS.length;l++){
+      const base=H*(.42+l*.11),amp=H*(.13+l*.038);
+      const f1=(1.05+l*.38)/W*Math.PI*2,f2=(2.2+l*.29)/W*Math.PI*2;
+      const ph=t*(.00013+l*.00007)+l*1.7;
+      ctx.beginPath();ctx.moveTo(0,H);
+      for(let x=0;x<=W;x+=3){
+        const y=base-Math.sin(x*f1+ph)*amp-Math.sin(x*f2+ph*1.6)*amp*.45;
+        ctx.lineTo(x,y);
+      }
+      ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=G[l];ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+  let lastT=0;
+  function loop(now){if(!run)return;if(now-lastT>=33){lastT=now;t=now;draw()}raf=requestAnimationFrame(loop)}
+  function start(){
+    if(run)return;
+    if(!sized&&!resize()){raf=requestAnimationFrame(start);return}   /* wait for a real size, once */
+    if(RM){draw();return}
+    run=true;raf=requestAnimationFrame(loop);
+  }
+  function stop(){run=false;cancelAnimationFrame(raf)}
+  addEventListener('resize',function(){sized=false;if(run&&resize())draw()});
+  addEventListener('orientationchange',function(){sized=false});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)stop();else if(view==='moods')start()});
+  window.__moodWave={start:start,stop:stop};
+})();
+const _goM=go;go=function(v){_goM.apply(this,arguments);if(window.__moodWave){if(v==='moods')window.__moodWave.start();else window.__moodWave.stop()}};
+})();
+</script>
+<script>
+/* ================= v17: a deeper taste model ================= */
+(function(){
+'use strict';
+function newModel(){const f={energy:.5,valence:.5,acousticness:.5,danceability:.5};
+  return {posF:Object.assign({},f),negF:Object.assign({},f),posN:0,negN:0,skipN:0,gP:{},gN:{},aP:{},aN:{},kP:{},kN:{},eraMean:2012,eraN:0};}
+function ensureModel(){if(!S.model||!S.model.posF)S.model=newModel();return S.model;}
+if(!S.model)S.model=newModel();
+
+/* every swipe teaches a liked centroid, a disliked centroid and per-genre/artist/keyword leanings */
+const _af=applyFeedback;
+applyFeedback=function(track,verdict){
+  _af.apply(this,arguments);
+  try{
+    const M=ensureModel(),f=track.f||inferFeatures(track);
+    const a=(verdict==='like'||verdict==='nope')?.22:.05;
+    const tgt=verdict==='nope'?M.negF:M.posF;
+    for(const k in M.posF){const v=(typeof f[k]==='number')?f[k]:.5;tgt[k]=tgt[k]*(1-a)+v*a;}
+    if(verdict==='like')M.posN++;else if(verdict==='nope')M.negN++;else M.skipN++;
+    const g=track.g||'default';
+    if(verdict==='nope')M.gN[g]=(M.gN[g]||0)*.88+1;else M.gP[g]=(M.gP[g]||0)*.94+.8;
+    const ak=norm(track.a).split(',')[0].trim()||norm(track.a);
+    if(ak){if(verdict==='nope')M.aN[ak]=Math.min(8,(M.aN[ak]||0)*.9+1.4);else M.aP[ak]=Math.min(8,(M.aP[ak]||0)*.94+1);}
+    keywordsOf(track.t).forEach(function(k){if(verdict==='nope')M.kN[k]=(M.kN[k]||0)*.9-.5;else M.kP[k]=(M.kP[k]||0)*.9+.5;});
+    if(verdict==='like'&&track.y){M.eraMean=(M.eraMean*(M.eraN||0)+track.y)/((M.eraN||0)+1);M.eraN=(M.eraN||0)+1;}
+  }catch(e){}
+};
+
+/* score = the base signals, sharpened by the dual-centroid model as evidence accumulates */
+const _base=scoreTrack;
+scoreTrack=function(t){
+  const base=_base(t),M=S.model;
+  if(!M)return base;
+  const n=(M.posN||0)+(M.negN||0);
+  if(n<2)return base;
+  const conf=clamp(n/18),f=t.f||inferFeatures(t),sig=.30;
+  const dist=function(A,B){let d=0;for(const k in A){const x=(A[k]||.5)-(B[k]||.5);d+=x*x}return Math.sqrt(d/4)};
+  const lc=Math.exp(-(dist(f,M.posF)**2)/(2*sig*sig));
+  const dc=M.negN?Math.exp(-(dist(f,M.negF)**2)/(2*sig*sig)):0;
+  let bonus=.5*(lc-.85*dc);
+  const ak=norm(t.a).split(',')[0].trim()||norm(t.a);
+  bonus+=.35*Math.min(1,(M.aP[ak]||0)/3)-.75*Math.min(1,(M.aN[ak]||0)/3);
+  bonus+=.22*Math.min(1,(M.gP[t.g]||0)/6)-.42*Math.min(1,(M.gN[t.g]||0)/6);
+  let kw=0;keywordsOf(t.t).forEach(function(k){kw+=(M.kP[k]||0)-(M.kN[k]||0)});
+  bonus+=Math.max(-.18,Math.min(.18,kw*.05));
+  return clamp(base+conf*bonus);
+};
+window.__tasteModel=function(){return S.model};
+
+/* recommendations: confidence-scaled exploration, deck-aware, and de-clumped per artist */
+const _rec=recommend;
+recommend=function(n){
+  const eps=Math.max(.10,.5-nSw()/280);
+  const inDeck=new Set(DECK.map(function(x){return norm(x.a).split(',')[0]}));
+  const pool=POOL.filter(function(t){return !S.seen.includes(t.id)});
+  const ranked=pool.map(function(t){
+    let s=scoreTrack(t);
+    const ak=norm(t.a).split(',')[0];
+    if(inDeck.has(ak))s-=.07;
+    return {t:t,s:s+(Math.random()<eps?Math.random()*.32:Math.random()*.03)};
+  }).sort(function(a,b){return b.s-a.s});
+  const out=[],cnt={};
+  for(let i=0;i<ranked.length&&out.length<n;i++){
+    const ak=norm(ranked[i].t.a).split(',')[0];
+    if((cnt[ak]||0)>=2)continue;
+    cnt[ak]=(cnt[ak]||0)+1;out.push(ranked[i].t);
+  }
+  return out;
+};
+})();
+</script>
+<script>
+/* ================= v18: type-in for the changing header text ================= */
+(function(){
+'use strict';
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DESC=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');
+
+/* Shadow textContent on the element: an unchanged write is swallowed so an
+   in-flight animation is never cut off; a changed write re-renders as glyphs. */
+function typed(el,step,lite){
+  if(!el)return;
+  el.style.setProperty('--tstep',step||'.05s');
+  let last=null;
+  Object.defineProperty(el,'textContent',{
+    configurable:true,
+    get:function(){return DESC.get.call(el)},
+    set:function(v){
+      const txt=String(v==null?'':v);
+      if(txt===last)return;
+      last=txt;
+      if(RM||!txt){DESC.set.call(el,txt);return}
+      let i=0;
+      el.innerHTML=txt.split(' ').map(function(word){
+        const inner=Array.prototype.map.call(word,function(c){return '<span class="tw" style="--i:'+(i++)+'">'+esc(c)+'</span>'}).join('');
+        i++;
+        return '<span class="twd">'+inner+'</span>';
+      }).join(' ');
+      if(lite){el.classList.remove('typing');void el.offsetWidth;el.classList.add('typing')}
+      /* once it has typed itself in, collapse back to a plain text node: the glyphs
+         exist only for the animation, so re-showing the view costs nothing */
+      clearTimeout(el.__tc);
+      const step=(parseFloat(el.style.getPropertyValue('--tstep'))||0.05)*1000;
+      el.__tc=setTimeout(function(){
+        if(DESC.get.call(el)===txt)DESC.set.call(el,txt);
+        el.classList.remove('typing');
+      },140+txt.length*step+820);
+    }
+  });
+}
+typed(document.querySelector('#mlabel'),'.05s');
+typed(document.querySelector('#mtail'),'.05s');
+typed(document.querySelector('#moodQ'),'.026s',true);
+
+/* paint once through the new setters so the first state types itself in */
+try{if(typeof hud==='function')hud()}catch(e){}
+(function(){const q=document.querySelector('#moodQ');if(q&&q.textContent)q.textContent=q.textContent;})();
+})();
+</script>
+<script>
+/* ================= v19: don't re-render a list that hasn't changed ================= */
+(function(){
+'use strict';
+let rev=0;
+const _af=applyFeedback;
+applyFeedback=function(){rev++;return _af.apply(this,arguments)};
+const _un=undo;
+undo=function(){rev++;return _un.apply(this,arguments)};
+const _fy=rForYou;
+rForYou=function(){
+  const l=document.querySelector('#forList');
+  const key=rev+'|'+POOL.length;
+  if(l&&l.children.length&&l.dataset.rev===key)return;   /* same taste, same pool: keep it */
+  if(l)l.dataset.rev=key;
+  return _fy.apply(this,arguments);
+};
+})();
+</script>
+<script>
+/* ================= v20: keep the tab switch off the layout hot path ================= */
+(function(){
+'use strict';
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const _go=go;
+go=function(v){
+  _go.apply(this,arguments);
+  /* the view was just made visible, so writing scrollTop forced a full reflow on the
+     tap itself. Let that happen on the next frame instead. */
+  if(!RM)requestAnimationFrame(function(){
+    const nu=document.querySelector('#v-'+(v||'discover'));
+    if(nu&&nu.scrollTop)nu.scrollTop=0;
+  });
+};
+})();
+</script>
+<script>
+/* ================= v21: keep the pool clean ================= */
+(function(){
+'use strict';
+const _atp=addToPool;
+addToPool=function(list){
+  const allowReg=(S.genre&&(S.genre['World']||0))>2;
+  const jf=window.__junkTrack;
+  const keep=(list||[]).filter(function(t){return t&&!(jf&&jf(t,allowReg))});
+  return _atp.call(this,keep);
+};
 })();
 </script>
 </body></html>
