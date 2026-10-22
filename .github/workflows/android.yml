@@ -114,21 +114,15 @@ jobs:
             fetch "/icons/icon-192.png" /tmp/cadence-icon-192.png
             fetch "/icons/icon-512.png" /tmp/cadence-icon-512.png
             fetch "/sw.js" /tmp/cadence-sw.js
-            fetch "/app.css" /tmp/cadence-app.css
-            fetch "/core.js" /tmp/cadence-core.js
-            fetch "/extras.js" /tmp/cadence-extras.js
             fetch "/.well-known/assetlinks.json" /tmp/cadence-assetlinks.json
             if [[ -s /tmp/cadence-index.html ]]; then
               grep -Fq 'rel="manifest"' /tmp/cadence-index.html || { echo "::warning::Homepage is missing rel=manifest"; failed=1; }
               grep -Fq 'content="1.1.0"' /tmp/cadence-index.html || { echo "::warning::Homepage version marker is not 1.1.0"; failed=1; }
-              grep -Fq 'src="core.js"' /tmp/cadence-index.html || { echo "::warning::Homepage does not load core.js"; failed=1; }
-              grep -Fq 'src="extras.js"' /tmp/cadence-index.html || { echo "::warning::Homepage does not load extras.js"; failed=1; }
+              grep -Fq 'cadence-inline-styles' /tmp/cadence-index.html || { echo "::warning::Homepage is missing inline app CSS"; failed=1; }
+              grep -Fq 'Bundled from core.js' /tmp/cadence-index.html || { echo "::warning::Homepage is missing bundled core logic"; failed=1; }
+              grep -Fq 'Bundled from extras.js' /tmp/cadence-index.html || { echo "::warning::Homepage is missing bundled extras logic"; failed=1; }
+              grep -Fq 'navigator.serviceWorker.register' /tmp/cadence-index.html || { echo "::warning::Standalone HTML does not register the service worker"; failed=1; }
             fi
-            if [[ -s /tmp/cadence-extras.js ]]; then
-              grep -Fq 'navigator.serviceWorker.register' /tmp/cadence-extras.js || { echo "::warning::extras.js does not register the service worker"; failed=1; }
-              node --check /tmp/cadence-extras.js || failed=1
-            fi
-            [[ ! -s /tmp/cadence-core.js ]] || node --check /tmp/cadence-core.js || failed=1
             if [[ -s /tmp/cadence-manifest.json && -s /tmp/cadence-assetlinks.json && -s /tmp/cadence-icon-192.png && -s /tmp/cadence-icon-512.png ]]; then
               node - <<'NODE' || failed=1
           const fs = require('node:fs');
