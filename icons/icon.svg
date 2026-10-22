@@ -4,5 +4,10 @@
   </linearGradient></defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <path d="M355 126 C235 48 96 132 96 256 C96 380 235 464 355 386" fill="none" stroke="#F6F1EA" stroke-width="62" stroke-linecap="round"/>
-  <circle cx="354" cy="256" r="41" fill="#FF5C8A"/>
+  <g fill="#FF5C8A">
+    <rect x="328" y="245" width="8" height="22" rx="4"/>
+    <rect x="341" y="232" width="8" height="48" rx="4"/>
+    <rect x="354" y="240" width="8" height="32" rx="4"/>
+    <rect x="367" y="248" width="8" height="16" rx="4"/>
+  </g>
 </svg>
