@@ -672,6 +672,20 @@ body[data-mini] #miniArt,body[data-mini] #miniPlay{display:grid}
 @media(prefers-reduced-motion:reduce){.mt,.mz-q .w,.mz-chip{animation-duration:.01s!important}.mz-box:before{animation:none}}
 </style></head><body>
 <div id="splash"><div class="sl">cadence<i>.</i></div><div class="sb2"><i></i></div></div>
+<script>
+/* Emergency splash failsafe: never leave the UI covered if an app script fails. */
+(function(){
+  var done=false;
+  function dismiss(){
+    if(done)return;done=true;
+    var s=document.getElementById('splash');
+    if(s){s.style.opacity='0';s.style.pointerEvents='none';setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)}
+  }
+  setTimeout(dismiss,1200);
+  window.addEventListener('error',function(){setTimeout(dismiss,100)});
+  window.addEventListener('unhandledrejection',function(){setTimeout(dismiss,100)});
+})();
+</script>
 <div id="bg"></div>
 <header><div class="logo">cadence<i>.</i></div>
 <div id="dockwrap"><div id="miniArt" role="button" tabindex="0" aria-label="Now playing — open Swipe"></div><nav id="nav"><button data-v="discover" class="on">Swipe</button><button data-v="foryou">For you</button><button data-v="moods">Moods</button><button data-v="game">Game</button><button data-v="taste">Taste</button></nav><div id="miniPlay" role="button" tabindex="0" aria-label="Play"></div></div>
