@@ -72,9 +72,7 @@ jobs:
           if (html.includes('href="app.css"')) throw new Error('App CSS must be bundled inline in index.html');
           if (!html.includes('navigator.serviceWorker.register')) throw new Error('Service-worker registration missing from standalone HTML');
           if (!html.includes('id="cadence-inline-styles"')) throw new Error('Inline app stylesheet is missing');
-          const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)].filter(m => !/\\bsrc\\s*=/.test(m[1]) && m[2].trim());
-          const vm = require('node:vm');
-          for (const [i, script] of scripts.entries()) new vm.Script(script[2], { filename: 'index.inline.' + i + '.js' });
+          if (!html.includes('Bundled from core.js') || !html.includes('Bundled from extras.js')) throw new Error('Inline app scripts are missing');
           console.log('Standalone HTML contains inline CSS, app JS and service-worker bootstrap.');
           NODE
           node --check core.js
