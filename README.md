@@ -39,6 +39,62 @@ Swipe through music, listen to previews, and react honestly. Each like, dislike,
 
 It is designed to make discovering music feel less like managing a library and more like finding a song you didn't know you needed.
 
+## Screenshots
+
+The current mobile experience, from swipe-based discovery to mood-built playlists and taste insights.
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <a href="screenshots/Discover.png"><img src="screenshots/Discover.png" alt="Cadence Discover screen showing the layered swipe deck, track artwork, taste-match score and playback controls" width="280" /></a><br />
+        <strong>Discover</strong><br />
+        Swipe through a layered deck, preview tracks, and react to what fits.
+      </td>
+      <td align="center" width="50%">
+        <a href="screenshots/For-You.png"><img src="screenshots/For-You.png" alt="Cadence For You screen with personalized track recommendations" width="280" /></a><br />
+        <strong>For You</strong><br />
+        A ranked feed shaped by your listening decisions.
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <a href="screenshots/Moods.png"><img src="screenshots/Moods.png" alt="Cadence mood discovery screen with mood prompts and a free-text vibe field" width="280" /></a><br />
+        <strong>Moods</strong><br />
+        Start with a feeling, scene, or vibe to guide music discovery.
+      </td>
+      <td align="center" width="50%">
+        <a href="screenshots/Mood-Results.png"><img src="screenshots/Mood-Results.png" alt="Cadence mood results showing a personalized playlist with match scores and refinement controls" width="280" /></a><br />
+        <strong>Mood Results</strong><br />
+        Explore a curated set of tracks and refine the result.
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <a href="screenshots/Mystery.png"><img src="screenshots/Mystery.png" alt="Cadence Mystery daily music quiz result screen" width="280" /></a><br />
+        <strong>Mystery</strong><br />
+        Test your music knowledge with a daily guessing game.
+      </td>
+      <td align="center" width="50%">
+        <a href="screenshots/Your-Taste.png"><img src="screenshots/Your-Taste.png" alt="Cadence taste profile showing liked, skipped and disliked tracks plus taste sources" width="280" /></a><br />
+        <strong>Your Taste</strong><br />
+        See how your reactions shape the profile and recommendations.
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <a href="screenshots/Sound-Profile.png"><img src="screenshots/Sound-Profile.png" alt="Cadence sound profile showing genre affinities, energy, valence, acousticness and danceability" width="280" /></a><br />
+        <strong>Sound Profile</strong><br />
+        Explore genre leanings and the audio traits behind your taste.
+      </td>
+      <td align="center" width="50%">
+        <a href="https://cadence.edgeone.dev/"><strong>Try Cadence ↗</strong></a><br />
+        Open the live experience on mobile and start discovering.
+      </td>
+    </tr>
+  </table>
+</div>
+
 ## Features
 
 ## What's new in v1.1.0
