@@ -1,6 +1,6 @@
 /* Cadence v1.1.0 service worker: offline shell + runtime caching. VERSION is stamped from shell contents by `node stamp.js`. */
-const VERSION = 'cadence-cssfallback-20261022';
-const SHELL = ['./', './index.html', './app.css', './core.js', './extras.js', './manifest.webmanifest', './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
+const VERSION = 'cadence-standalone-20261022';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-96.png', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
 const CDN_HOSTS = ['cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
