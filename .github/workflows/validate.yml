@@ -68,11 +68,14 @@ jobs:
           const html = fs.readFileSync('index.html', 'utf8');
           if (!/rel=["']manifest["']/.test(html)) throw new Error('HTML does not link the web manifest');
           if (!html.includes('content="1.1.0"')) throw new Error('HTML release marker is not 1.1.0');
-          for (const src of ['app.css', 'core.js', 'extras.js']) {
-            if (!html.includes(src)) throw new Error('HTML does not reference ' + src);
-          }
-          if (!fs.readFileSync('extras.js', 'utf8').includes('navigator.serviceWorker.register')) throw new Error('Service-worker registration missing from extras.js');
-          console.log('HTML entry points and service-worker bootstrap are present.');
+          if (/<script\\s+src=["'](?:core|extras)\\.js["']/.test(html)) throw new Error('App JS must be bundled inline in index.html');
+          if (/<link[^>]+href=["'][^"']+\\.css(?:[?"'][^>]*)/i.test(html)) throw new Error('App CSS must be bundled inline in index.html');
+          if (!html.includes('navigator.serviceWorker.register')) throw new Error('Service-worker registration missing from standalone HTML');
+          if (!/<style id=["']cadence-inline-styles["']>[\\s\\S]*?:root/.test(html)) throw new Error('Inline app stylesheet is missing');
+          const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)].filter(m => !/\\bsrc\\s*=/.test(m[1]) && m[2].trim());
+          const vm = require('node:vm');
+          for (const [i, script] of scripts.entries()) new vm.Script(script[2], { filename: 'index.inline.' + i + '.js' });
+          console.log('Standalone HTML contains inline CSS, app JS and service-worker bootstrap.');
           NODE
           node --check core.js
           node --check extras.js
