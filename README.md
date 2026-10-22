@@ -41,6 +41,17 @@ It is designed to make discovering music feel less like managing a library and m
 
 ## Features
 
+## What's new in v1.1.0
+
+- A mini player keeps the current track accessible while you explore other tabs.
+- Swipe upward to hand off a track to Spotify without changing your taste rating.
+- Mood prompts build personalized playlists; taste confidence now responds to listening-pattern shifts.
+- Google sign-in and profile sync are available when the configured Supabase backend is enabled.
+- Spotify reconnect, OAuth state handling, credential-free export, and reset behavior have been hardened.
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete release notes and [TWA-SETUP.md](TWA-SETUP.md) for Android build details.
+
+
 ### 🎧 Discover by feel
 - A swipeable, layered deck of tracks with artwork, artist details, and audio previews.
 - Left to dislike, right to like, down to skip.

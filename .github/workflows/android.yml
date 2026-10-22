@@ -36,6 +36,10 @@ jobs:
         run: |
           set -euo pipefail
           test -s index.html
+          test -s app.css
+          test -s core.js
+          test -s extras.js
+          test -s tests/cadence.test.js
           test -s manifest.webmanifest
           test -s sw.js
           test -s twa-manifest.json
@@ -72,6 +76,13 @@ jobs:
           echo "Using Android SDK: $SDK_ROOT"
           ls -ld "$SDK_ROOT" "$SDK_ROOT/tools" 2>/dev/null || true
 
+      - name: Run app regression and syntax tests
+        run: |
+          node --test tests/cadence.test.js
+          node --check core.js
+          node --check extras.js
+          node --check sw.js
+
       - name: Verify deployed website
         shell: bash
         run: |
@@ -88,9 +99,17 @@ jobs:
                curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/icons/icon-192.png -o /tmp/cadence-icon-192.png 2>/dev/null &&
                curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/icons/icon-512.png -o /tmp/cadence-icon-512.png 2>/dev/null &&
                curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/sw.js -o /tmp/cadence-sw.js 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/app.css -o /tmp/cadence-app.css 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/core.js -o /tmp/cadence-core.js 2>/dev/null &&
+               curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/extras.js -o /tmp/cadence-extras.js 2>/dev/null &&
                curl --fail --silent --show-error --location --connect-timeout 5 --max-time 8 https://cadence.edgeone.dev/.well-known/assetlinks.json -o /tmp/cadence-assetlinks.json 2>/dev/null &&
                grep -Fq 'rel="manifest"' /tmp/cadence-index.html &&
-               grep -Fq 'navigator.serviceWorker.register' /tmp/cadence-index.html &&
+               grep -Fq 'content="1.1.0"' /tmp/cadence-index.html &&
+               grep -Fq 'src="core.js"' /tmp/cadence-index.html &&
+               grep -Fq 'src="extras.js"' /tmp/cadence-index.html &&
+               grep -Fq 'navigator.serviceWorker.register' /tmp/cadence-extras.js &&
+               node --check /tmp/cadence-core.js &&
+               node --check /tmp/cadence-extras.js &&
                node - <<'NODE'
           const fs = require('node:fs');
           const m = JSON.parse(fs.readFileSync('/tmp/cadence-manifest.json', 'utf8'));
@@ -102,6 +121,7 @@ jobs:
             return [b.readUInt32BE(16), b.readUInt32BE(20)];
           };
           if (!m.start_url || m.display !== 'standalone' || !Array.isArray(m.icons) || !m.icons.some(i => i.sizes === '192x192') || !m.icons.some(i => i.sizes === '512x512')) throw new Error('Live PWA manifest lacks start_url, standalone display or required raster icons');
+          if (twa.appVersion !== '1.1.0' || twa.appVersionCode !== 3) throw new Error('TWA manifest is not configured for release 1.1.0 (version code 3)');
           if (JSON.stringify(pngSize('/tmp/cadence-icon-192.png')) !== '[192,192]') throw new Error('Live 192px icon has incorrect dimensions');
           if (JSON.stringify(pngSize('/tmp/cadence-icon-512.png')) !== '[512,512]') throw new Error('Live 512px icon has incorrect dimensions');
           if (!Array.isArray(links) || !links.some(x => x.target?.package_name === twa.packageId && x.relation?.includes('delegate_permission/common.handle_all_urls') && twa.fingerprints?.some(f => x.target?.sha256_cert_fingerprints?.includes(f.value)))) throw new Error('Live Digital Asset Links do not match the app package/signing fingerprint');

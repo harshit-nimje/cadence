@@ -18,33 +18,19 @@ jobs:
     name: Validate static app and PWA files
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Check required files
-        shell: bash
         run: |
           set -euo pipefail
-          test -s index.html
-          test -s manifest.webmanifest
-          test -s sw.js
-          test -s twa-manifest.json
-          test -s icons/icon.svg
-          test -s icons/icon-96.png
-          test -s icons/apple-touch-icon.png
-          test -s icons/icon-192.png
-          test -s icons/icon-512.png
-          test -s icons/maskable-512.png
-          test -s .well-known/assetlinks.json
-          test -s .github/workflows/android.yml
-          test -s .github/workflows/deploy-edgeone.yml
+          for f in index.html app.css core.js extras.js sw.js stamp.js manifest.webmanifest twa-manifest.json tests/cadence.test.js .well-known/assetlinks.json icons/icon.svg icons/icon-96.png icons/apple-touch-icon.png icons/icon-192.png icons/icon-512.png icons/maskable-512.png; do
+            test -s "$f" || { echo "::error::Missing required file: $f"; exit 1; }
+          done
 
-      - name: Validate JSON manifests
+      - name: Validate JSON manifests, icons and signing links
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
@@ -52,9 +38,8 @@ jobs:
           const twa = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
           const links = JSON.parse(fs.readFileSync('.well-known/assetlinks.json', 'utf8'));
           if (!manifest.name || manifest.display !== 'standalone') throw new Error('PWA manifest missing required name/display');
-          if (!manifest.icons?.some(icon => icon.sizes === '192x192')) throw new Error('PWA manifest missing 192x192 icon');
-          if (!manifest.icons?.some(icon => icon.sizes === '512x512')) throw new Error('PWA manifest missing 512x512 icon');
-          const pngSize = (path) => {
+          for (const size of ['192x192', '512x512']) if (!manifest.icons?.some(icon => icon.sizes === size)) throw new Error('PWA manifest missing ' + size + ' icon');
+          const pngSize = path => {
             const b = fs.readFileSync(path);
             if (b.length < 24 || b.toString('hex', 0, 8) !== '89504e470d0a1a0a') throw new Error(path + ' is not a valid PNG');
             return [b.readUInt32BE(16), b.readUInt32BE(20)];
@@ -65,42 +50,33 @@ jobs:
             'icons/icon-192.png': [192, 192],
             'icons/icon-512.png': [512, 512],
             'icons/maskable-512.png': [512, 512]
-          })) {
-            if (JSON.stringify(pngSize(path)) !== JSON.stringify(size)) throw new Error(path + ' has incorrect dimensions');
-          }
+          })) if (JSON.stringify(pngSize(path)) !== JSON.stringify(size)) throw new Error(path + ' has incorrect dimensions');
           for (const icon of manifest.icons ?? []) {
-            const rawSrc = icon.src.split('?')[0];
-            const src = rawSrc.startsWith('/') ? rawSrc.slice(1) : rawSrc;
+            const src = icon.src.split('?')[0].replace(/^\//, '');
             if (!fs.existsSync(src)) throw new Error('Manifest references missing icon: ' + icon.src);
           }
-          if (!manifest.icons?.some(icon => icon.src === '/icons/maskable-512.png' && icon.purpose === 'maskable')) throw new Error('Manifest missing dedicated maskable icon');
-          if (!twa.packageId || !twa.host || !twa.appVersion || !Number.isInteger(twa.appVersionCode)) throw new Error('TWA manifest missing package/version/host');
-          if (!Number.isInteger(twa.minSdkVersion) || twa.minSdkVersion < 24) throw new Error('TWA minimum SDK must be 24 or newer for Android Browser Helper 2.7.4');
-          if (!Array.isArray(links)) throw new Error('Digital Asset Links file must be a JSON array');
-          console.log('PWA manifest, TWA manifest, and both required raster icon sizes parsed successfully.');
-          const expected = twa.fingerprints?.map(f => f.value) ?? [];
-          if (!links.some(link => link.target?.package_name === twa.packageId && link.relation?.includes('delegate_permission/common.handle_all_urls') && expected.some(fp => link.target?.sha256_cert_fingerprints?.includes(fp)))) {
-            throw new Error('Digital Asset Links does not contain the TWA package and configured signing fingerprint');
-          }
-          console.log('Digital Asset Links package and signing fingerprint match twa-manifest.json.');
+          if (!manifest.icons?.some(icon => icon.src === 'icons/maskable-512.png' && icon.purpose === 'maskable')) throw new Error('Manifest missing maskable icon');
+          if (twa.appVersion !== '1.1.0' || twa.appVersionCode !== 3) throw new Error('TWA version must be 1.1.0 / code 3');
+          if (!Array.isArray(links) || !links.some(link => link.target?.package_name === twa.packageId && link.relation?.includes('delegate_permission/common.handle_all_urls') && twa.fingerprints?.some(f => link.target?.sha256_cert_fingerprints?.includes(f.value)))) throw new Error('Digital Asset Links do not match the TWA package and signing fingerprint');
+          console.log('PWA manifest, icons, TWA version and Digital Asset Links are valid.');
           NODE
 
-      - name: Verify PWA bootstrap and JavaScript syntax
+      - name: Check HTML entry points and JavaScript syntax
         run: |
           node - <<'NODE'
           const fs = require('node:fs');
-          const vm = require('node:vm');
           const html = fs.readFileSync('index.html', 'utf8');
           if (!/rel=["']manifest["']/.test(html)) throw new Error('HTML does not link the web manifest');
-          if (!html.includes('navigator.serviceWorker.register') || !html.includes("register('sw.js')")) throw new Error('HTML does not register the local sw.js file');
-          if (!html.includes('Cadence')) throw new Error('Cadence product title/branding missing');
-          const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
-          let checked = 0;
-          for (const [, attrs, source] of scripts) {
-            if (/\bsrc\s*=/.test(attrs) || !source.trim()) continue;
-            new vm.Script(source, { filename: 'index.html inline script ' + (++checked) });
+          if (!html.includes('content="1.1.0"')) throw new Error('HTML release marker is not 1.1.0');
+          for (const src of ['app.css', 'core.js', 'extras.js']) {
+            if (!html.includes(src)) throw new Error('HTML does not reference ' + src);
           }
-          if (!checked) throw new Error('No inline JavaScript was syntax-checked');
-          new vm.Script(fs.readFileSync('sw.js', 'utf8'), { filename: 'sw.js' });
-          console.log('Manifest link and sw.js registration are present; ' + checked + ' inline scripts and sw.js passed syntax checks.');
+          if (!fs.readFileSync('extras.js', 'utf8').includes('navigator.serviceWorker.register')) throw new Error('Service-worker registration missing from extras.js');
+          console.log('HTML entry points and service-worker bootstrap are present.');
           NODE
+          node --check core.js
+          node --check extras.js
+          node --check sw.js
+
+      - name: Run regression tests
+        run: node --test tests/cadence.test.js

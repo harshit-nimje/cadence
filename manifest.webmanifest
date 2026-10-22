@@ -1,11 +1,11 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "Cadence",
   "short_name": "Cadence",
   "description": "Swipe to find your sound.",
   "lang": "en",
-  "start_url": "/?source=twa",
-  "scope": "/",
+  "start_url": "./?source=twa",
+  "scope": "./",
   "display": "standalone",
   "display_override": [
     "standalone",
@@ -20,25 +20,25 @@
   ],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/maskable-512.png",
+      "src": "icons/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon.svg",
+      "src": "icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

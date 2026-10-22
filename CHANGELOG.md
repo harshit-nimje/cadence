@@ -1,21 +1,45 @@
 # Changelog
 
-## [1.0.1] — 2026-10-21
+Notable user-facing changes are recorded here for each release.
 
-### New
-- **Mood-based playlists:** Describe a feeling or pick a quick mood prompt (such as *rainy evening*, *gym*, *heartbreak*, or *focus*) to get a tailored set of tracks.
-- **Mini player:** Keep playback controls and the current track's artwork available while navigating around the app.
-- **Open-track swipe action:** Adds a distinct swipe affordance for opening a track, alongside the existing like, skip, and middle/neutral actions.
+## [1.1.0] — 2026-10-22
+
+### Added
+- **Mini player across tabs:** current artwork and play/pause controls remain available outside Swipe, without interrupting playback when returning to the deck.
+- **Play the full track on Spotify:** swipe a card upward to open the exact Spotify track when resolvable, with search fallback when no direct track link is available. This action does not record a taste vote, and the pending track survives a refresh.
+- **Google sign-in and taste sync:** sign in through the configured Supabase project and sync the profile across devices.
+- **Mood playlists:** describe a feeling or choose a quick prompt to get a personalized set of tracks, with animated mood visuals and staggered results.
 
 ### Improved
-- **More personal recommendations:** Swipe feedback now informs a richer taste model that learns from liked and disliked tracks, artists, genres, audio characteristics, and track-title keywords.
-- **Cleaner mood results:** Mood playlists filter likely duplicates, tracks that simply echo the prompt, repeated artists, and obvious low-quality or mismatched results.
-- **Cleaner discovery pool:** Incoming tracks are filtered to reduce comedy, meme, spoken-word, cover, and other unwanted results, with regional-music filtering adjusted based on taste signals.
-- **Smoother interface:** Refined card movement, button feedback, transitions, shadows, and screen-entry animations.
-- **Improved small-screen layout:** The taste-confidence meter is more readable on phones, and the navigation dock adapts when the mini player is visible.
-- **More polished mood screen:** Added animated mood prompts, a subtle animated colour-wave background, staggered track entrances, and support for reduced-motion preferences.
-- **Less disruptive navigation:** Tab changes defer some scroll-reset work to the next animation frame, and unchanged recommendation lists avoid unnecessary re-rendering.
+- **Taste-confidence phase shifts:** the confidence indicator responds when recent listening differs from the established profile, then recovers as the new pattern settles.
+- **Mobile navigation and layout:** the mini player fits alongside the navigation dock on narrow screens; the active tab label adapts to available width.
+- **Swipe experience:** clearer play-on-Spotify feedback, a more legible Spotify mark, a single-row header, and the archetype strip placed closer to the current card.
+- **Playback behavior:** no background playback when the app is hidden; returning to Swipe no longer needlessly restarts the current track. Pull-to-refresh is disabled in the swipe surface.
+- **Spotify reliability:** expired sessions prompt reconnect, refresh requests are single-flight, rate limits respect `Retry-After`, and OAuth callback state is validated and consumed safely.
+- **Taste-data handling:** exports exclude Spotify credentials; reset clears local OAuth remnants and cloud profile state; profile sync prefers the newer `updatedAt` record.
+- **Recommendation efficiency:** bounded state collections, constant-time seen-track lookup, cleaner imports, metadata-aware card refresh, and fewer unnecessary UI updates.
+- **Accessibility and usability:** browser zoom remains enabled, installed-app setup guidance is shown in the appropriate context, and reduced-motion preferences are respected.
+
+### Engineering and quality
+- Source is organized into `index.html`, `app.css`, `core.js`, and `extras.js` for easier maintenance.
+- Added automated tests for taste updates, recommendation scoring, state limits, seen-track lookup, and Spotify token refresh/revocation behavior.
+- Service-worker cache cleanup is limited to Cadence-owned caches, avoiding deletion of unrelated apps' caches on the same origin.
+
+### Notes
+- Mood and recommendation quality depend on the available catalogue and connected services.
+- The automated tests do not replace end-to-end testing of Google/Spotify OAuth, playlist saving, full-track handoff, and playback on a real device.
+
+## [1.0.1] — 2026-10-21
+
+### Added
+- Mood-based playlists with quick prompts such as rainy evening, gym, heartbreak, and focus.
+- A mini player and a distinct swipe action for opening a track.
+
+### Improved
+- Recommendations use a richer taste model built from likes, dislikes, artists, genres, audio characteristics, and track-title keywords.
+- Mood and discovery results filter likely duplicates, repeated artists, prompt echoes, comedy, memes, spoken-word tracks, and covers.
+- Refined card movement, button feedback, transitions, shadows, animations, reduced-motion handling, and small-screen layout.
 
 ### Notes
 - Mood playlist quality depends on the available track pool and connected music services.
-- This changelog lists user-facing changes identified by comparing the supplied build with the previous repository version. End-to-end testing of Spotify sign-in, playlist saving, and playback is still recommended.
+- End-to-end testing of Spotify sign-in, playlist saving, and playback is still recommended.
